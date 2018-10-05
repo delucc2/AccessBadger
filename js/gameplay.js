@@ -1,83 +1,35 @@
 let gameplayState = function(){
-	this.score = 0;
-};
-
-gameplayState.prototype.preload = function(){
 
 };
 
 gameplayState.prototype.create = function(){
+	this.graphics = game.add.graphics(0,0);
 
-	game.physics.startSystem(Phaser.Physics.ARCADE);
+	// Draws Grid
+	this.grid = [];
+	for (let x = 0; x < 20; x++) {
+		for (let y = 0; y < 15; y++) {
+			game.debug.geom(new Phaser.Line(x * 40, 0, x * 40, 600));
+			game.debug.geom(new Phaser.Line(0, y * 40, 800, y * 40));
 
-
-	game.add.sprite(0,0, "sky");
-
-
-	this.platforms = game.add.group();
-	this.platforms.enableBody = true;
-
-	this.player = game.add.sprite(32, game.world.height - 150, "murph");
-	game.physics.arcade.enable(this.player);
-	this.player.body.gravity.y = 300;
-	this.player.body.collideWorldBounds = true;
-	this.player.body.bounce.y = 1.1;
-
-	let ledge = this.platforms.create(400,400, "platform");
-	ledge.body.immovable = true;
-
-	ledge = this.platforms.create(-150,250, "platform");
-	ledge.body.immovable = true;
-
-	let ground = this.platforms.create(0, game.world.height - 64, "platform");
-	ground.scale.setTo(2,2);
-	ground.body.immovable=true;
-
-	this.player.animations.add("left", [0, 1, 2, 3], 10, true);
-	this.player.animations.add("right", [5, 6, 7, 8], 10, true);
-
-	this.stars = game.add.group();
-	this.stars.enableBody = true;
-	for (let i=0;i<12;i++){
-		let star = this.stars.create(i*70, 0, "star");
-		star.body.gravity.y = 300;
-		star.body.bounce.y = Math.random();
+			this.grid.push(new Phaser.Rectangle(x * 40, y * 40, 40, 40));
+		}
 	}
 
-	this.scoreText = game.add.text(16, 16, "Score: 0", {fontSize:"32px", fill:"#000"})
-
-	this.cursors = game.input.keyboard.createCursorKeys();
 };
 
 gameplayState.prototype.update = function(){
-	game.physics.arcade.collide(this.player, this.platforms);
-	game.physics.arcade.collide(this.stars, this.platforms);
+	let mouse = game.input.activePointer;
 
-	game.physics.arcade.overlap(this.player, this.stars, this.collectStar, null, this);
-	this.player.body.velocity.x = 0;
+	this.graphics.clear(); // Clears all grid boxes
 
-	if(this.cursors.left.isDown){
-		this.player.body.velocity.x = -150;
-		this.player.animations.play("left");
+	// If the cursor is in a box, highlight as red
+	for (let i = 0; i < this.grid.length; i++) {
+		if (this.grid[i].contains(game.input.x, game.input.y)) {
+			let box = this.grid[i];
+			this.graphics.beginFill(0xFF3300);
+			this.graphics.drawRect(box.x, box.y, box.width, box.height);
+			this.graphics.endFill();
+		}
 	}
-
-	else if(this.cursors.right.isDown){
-		this.player.body.velocity.x = 150;
-		this.player.animations.play("right");
-	}
-	else{
-		this.player.animations.stop();
-		this.player.frame = 4;
-	}
-
-	if(this.cursors.up.isDown && this.player.body.touching.down){
-		this.player.body.velocity.y = -350;
-	}
-};
-
-
-gameplayState.prototype.collectStar = function(a, b){
-	b.kill();
-	this.score += 10;
-	this.scoreText.text = "Score: "+this.score;
 };
