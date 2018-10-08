@@ -1,5 +1,5 @@
 let gameplayState = function(){
-
+	this.selection = "";
 };
 
 gameplayState.prototype.create = function(){
@@ -7,6 +7,9 @@ gameplayState.prototype.create = function(){
 
 	this.walls = game.add.group();
 	this.walls.enableBody = true;
+
+	this.gates = game.add.group();
+	this.gates.enableBody = true;
 
 	// Draws Grid
 	this.grid = [];
@@ -23,6 +26,7 @@ gameplayState.prototype.create = function(){
 
 gameplayState.prototype.update = function(){
 	let mouse = game.input.activePointer;
+	this.cursors = game.input.keyboard.createCursorKeys();
 
 	this.graphics.clear(); // Clears all grid boxes
 
@@ -34,8 +38,26 @@ gameplayState.prototype.update = function(){
 			this.graphics.drawRect(box.x, box.y, box.width, box.height);
 			this.graphics.endFill();
 			if (mouse.leftButton.isDown) {
-				this.walls.create(box.x, box.y, "wall");
+				this.buildObject(this.selection, box.x, box.y);
 			}
 		}
 	}
+
+	if (this.cursors.up.isDown) {
+		this.selection = "wall";
+	}
+
+	if (this.cursors.down.isDown) {
+		this.selection = "gate";
+	}
 };
+
+gameplayState.prototype.buildObject = function(selection, x, y) {
+	switch(selection) {
+		case "wall":
+			this.walls.create(x, y, "wall");
+			break;
+		case "gate":
+			this.gates.create(x, y, "gate");
+	}
+}
