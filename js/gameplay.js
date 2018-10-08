@@ -5,12 +5,15 @@ let gameplayState = function(){
 gameplayState.prototype.create = function(){
 	this.graphics = game.add.graphics(0,0);
 
+	this.walls = game.add.group();
+	this.walls.enableBody = true;
+
 	// Draws Grid
 	this.grid = [];
 	for (let x = 0; x < 20; x++) {
 		for (let y = 0; y < 15; y++) {
-			game.debug.geom(new Phaser.Line(x * 40, 0, x * 40, 600));
-			game.debug.geom(new Phaser.Line(0, y * 40, 800, y * 40));
+			//game.debug.geom(new Phaser.Line(x * 40, 0, x * 40, 600));
+			//game.debug.geom(new Phaser.Line(0, y * 40, 800, y * 40));
 
 			this.grid.push(new Phaser.Rectangle(x * 40, y * 40, 40, 40));
 		}
@@ -30,6 +33,9 @@ gameplayState.prototype.update = function(){
 			this.graphics.beginFill(0xFF3300);
 			this.graphics.drawRect(box.x, box.y, box.width, box.height);
 			this.graphics.endFill();
+			if (mouse.leftButton.isDown) {
+				this.walls.create(box.x, box.y, "wall");
+			}
 		}
 	}
 };
