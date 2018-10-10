@@ -3,8 +3,11 @@ let gameplayState = function(){
 };
 
 gameplayState.prototype.create = function(){
-	game.physics.startSystem(Phaser.Physics.ARCADE);
-
+    game.physics.startSystem(Phaser.Physics.ARCADE);
+    
+	this.startTime = this.game.time.time;
+	this.time = this.game.time.time;
+	this.blueBadgersLeft = 0;
 	this.graphics = game.add.graphics(0,0);
 
 	this.walls = game.add.group();
@@ -12,9 +15,11 @@ gameplayState.prototype.create = function(){
 
 	this.gates = game.add.group();
 	this.gates.enableBody = true;
-
+	
 	this.people = game.add.group();
 	this.people.enableBody = true;
+
+	this.setupUI();
 
 	// Draws Grid
 	this.grid = [];
@@ -28,10 +33,15 @@ gameplayState.prototype.create = function(){
 
 gameplayState.prototype.update = function(){
 	let mouse = game.input.activePointer;
-	this.cursors = game.input.keyboard.createCursorKeys();
+	//this.cursors = game.input.keyboard.createCursorKeys();
 
 	this.graphics.clear(); // Clears all grid boxes
+	//Sets ui zone
+	this.graphics.beginFill(0xA5CBD2);
+	this.graphics.drawRect(0, 0, 513, 1125);
+	this.graphics.endFill();
 
+	this.updateTime();
 	// If the cursor is in a box, highlight as red
 	for (let i = 0; i < this.grid.length; i++) {
 		if (this.grid[i].contains(game.input.x, game.input.y)) {
@@ -48,17 +58,14 @@ gameplayState.prototype.update = function(){
 	if (this.cursors.up.isDown) {
 		this.selection = "wall";
 	}
+
 	if (this.cursors.down.isDown) {
 		this.selection = "gate";
 	}
-	if (this.cursors.right.isDown) {
-		this.selection = "crowd";
-	}
-
-	game.physics.arcade.collide(this.people, this.walls, this.turn, null, this);
 };
 
 gameplayState.prototype.buildObject = function(selection, x, y) {
+	
 	switch(selection) {
 		case "wall":
 			let wall = this.walls.create(x, y, "wall");
@@ -66,28 +73,6 @@ gameplayState.prototype.buildObject = function(selection, x, y) {
 			wall.body.immovable = true;
 			break;
 		case "gate":
-			let gate = this.gates.create(x, y, "gate");
-			gate.scale.setTo(1.875,1.875);
-			gate.body.immovable = true;
-			break;
-		case "crowd":
-			let person = this.people.create(x, y, "person");
-			person.body.velocity.y = 75;
-	}
-};
-
-gameplayState.prototype.turn = function(person, wall) {
-	if (person.body.touching.down) {
-		person.body.velocity.y = 0;
-		person.body.velocity.x = 75;
-	} else if (person.body.touching.right) {
-		person.body.velocity.y = -75;
-		person.body.velocity.x = 0;
-	} else if (person.body.touching.up) {
-		person.body.velocity.y = 0;
-		person.body.velocity.x = -75;
-	} else if (person.body.touching.left) {
-		person.body.velocity.y = 75;
-		person.body.velocity.x = 0;
+			this.gates.create(x, y, "gate");
 	}
 };
