@@ -10,6 +10,7 @@ preloadState.prototype.preload = function(){
 	game.load.spritesheet("button_sheet", "assets/button_sheet.png", 64, 64);
 	game.load.image("wall", "assets/wall_placeholder.png");
 	game.load.image("gate", "assets/gate_placeholder.png");
+	game.load.image("person", "assets/person_placeholder.png");
 };
 
 preloadState.prototype.create = function(){
