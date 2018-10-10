@@ -1,6 +1,5 @@
 let gameplayState = function(){
 	this.selection = "";
-	
 };
 
 gameplayState.prototype.create = function(){
@@ -30,7 +29,7 @@ gameplayState.prototype.create = function(){
 
 gameplayState.prototype.update = function(){
 	let mouse = game.input.activePointer;
-	this.cursors = game.input.keyboard.createCursorKeys();
+	//this.cursors = game.input.keyboard.createCursorKeys();
 
 	this.graphics.clear(); // Clears all grid boxes
 	//Sets ui zone
@@ -52,22 +51,22 @@ gameplayState.prototype.update = function(){
 		}
 	}
 
-	if (this.cursors.up.isDown) {
-		this.selection = "wall";
-	}
 
-	if (this.cursors.down.isDown) {
-		this.selection = "gate";
-	}
+
+	
 };
 
 gameplayState.prototype.buildObject = function(selection, x, y) {
+	
 	switch(selection) {
 		case "wall":
 			this.walls.create(x, y, "wall");
 			break;
 		case "gate":
 			this.gates.create(x, y, "gate");
+			break;
+		default :
+			break;
 	}
 };
 
@@ -77,15 +76,15 @@ gameplayState.prototype.setupUI = function(){
 	this.graphics.drawRect(0, 0, 513, 1125);
 	this.graphics.endFill();
 	this.timeText = game.add.text(10, 10, "Time: 0", {fontSize: '32px', fill: '#000'});
-	createButton(0, 60, "Blue Gate", "gate_ui", "blue", defaultAction);
-	createButton(0, 200, "Wall", "wall_ui", "red", defaultAction);
+	this.createButton(0, 60, "Blue Gate", "gate_ui", "blue", this.setSelectionBlueGate);
+	this.createButton(0, 200, "Wall", "wall_ui", "red", this.setSelectionWall);
 	this.blueBadgersLeftText = game.add.text(10, 340, "Blue Badgers Left: 0", {fontSize: '32px', fill: '#000'});
 };
 
 gameplayState.prototype.updateTime = function(){
 	
 	this.time = this.game.time.time;
-	this.timeText.text = "Time: " + ((this.time - this.startTime) / 1000);
+	this.timeText.text = "Time: " + (Math.floor((this.time - this.startTime) / 1000));
 };
 
 
@@ -93,3 +92,18 @@ gameplayState.prototype.decreaseBlueBadgersLeft = function(){
 	this.blueBadgersLeft--;
 	this.blueBadgersLeftText.text = "Blue Badgers Left: " + this.blueBadgersLeft;
 };
+
+
+
+gameplayState.prototype.setSelectionWall = function(){	
+	this.selection = "wall";
+};
+
+
+gameplayState.prototype.setSelectionBlueGate = function(){
+	this.selection = "gate";
+	
+};
+
+
+
