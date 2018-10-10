@@ -7,7 +7,7 @@ preloadState.prototype.preload = function(){
 	game.load.image("platform", "assets/platform.png");
 	game.load.image("star", "assets/star.png");
 	game.load.spritesheet("murph", "assets/character.png", 32, 48);
-	game.load.spritesheet("button_sheet", "assets/button_sheet.png", 64, 64);
+	game.load.spritesheet("button_sheet", "assets/button_sheet.png", 512, 128);
 	game.load.image("wall", "assets/wall_placeholder.png");
 	game.load.image("gate", "assets/gate_placeholder.png");
 };

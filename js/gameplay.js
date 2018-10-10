@@ -11,6 +11,9 @@ gameplayState.prototype.create = function(){
 	this.gates = game.add.group();
 	this.gates.enableBody = true;
 
+	this.setupUI();
+	
+
 	// Draws Grid
 	this.grid = [];
 	for (let x = 0; x < 22; x++) {
@@ -26,7 +29,10 @@ gameplayState.prototype.update = function(){
 	this.cursors = game.input.keyboard.createCursorKeys();
 
 	this.graphics.clear(); // Clears all grid boxes
-
+	//Sets ui zone
+	this.graphics.beginFill(0xA5CBD2);
+	this.graphics.drawRect(0, 0, 513, 1125);
+	this.graphics.endFill();
 	// If the cursor is in a box, highlight as red
 	for (let i = 0; i < this.grid.length; i++) {
 		if (this.grid[i].contains(game.input.x, game.input.y)) {
@@ -57,4 +63,15 @@ gameplayState.prototype.buildObject = function(selection, x, y) {
 		case "gate":
 			this.gates.create(x, y, "gate");
 	}
+}
+
+
+gameplayState.prototype.setupUI = function(){
+	
+	createButton(0, 20, "Gate", defaultAction);
+}
+
+
+gameplayState.prototype.clear = function(){
+	//this.
 }
