@@ -3,6 +3,11 @@ let gameplayState = function(){
 };
 
 gameplayState.prototype.create = function(){
+	//audio
+	this.music = game.add.audio('music_1');
+	this.music.loop = true;
+    this.music.play();
+
 	this.startTime = this.game.time.time;
 	this.time = this.game.time.time;
 	this.blueBadgersLeft = 0;
@@ -28,6 +33,7 @@ gameplayState.prototype.create = function(){
 };
 
 gameplayState.prototype.update = function(){
+
 	let mouse = game.input.activePointer;
 	//this.cursors = game.input.keyboard.createCursorKeys();
 

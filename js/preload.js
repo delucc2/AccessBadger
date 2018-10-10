@@ -13,6 +13,7 @@ preloadState.prototype.preload = function(){
 	game.load.image("gate", "assets/gate_placeholder.png");
 	game.load.image("gate_ui", "assets/gate_ui_placeholder.png");
 	game.load.image("wall_ui", "assets/wall_ui_placeholder.png");
+	game.load.audio("music_1", "assets/chill synthwave stuff.ogg");
 };
 
 preloadState.prototype.create = function(){
