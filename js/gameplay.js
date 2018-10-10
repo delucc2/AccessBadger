@@ -1,5 +1,6 @@
 let gameplayState = function(){
 	this.selection = "";
+	this.type = "";
 };
 
 gameplayState.prototype.create = function(){
@@ -56,19 +57,13 @@ gameplayState.prototype.update = function(){
 		}
 	}
 
-	if (this.cursors.up.isDown) {
-		this.selection = "wall";
-	}
-
-	if (this.cursors.down.isDown) {
-		this.selection = "gate";
-	}
-
 	if (this.cursors.right.isDown) {
-		this.selection = "person";
+		this.selection = "badger";
+		this.type = "blue";
 	}
 
 	game.physics.arcade.collide(this.people, this.walls, this.turn, null, this);
+	game.physics.arcade.collide(this.people, this.gates, this.turn, this.access, this);
 };
 
 gameplayState.prototype.buildObject = function(selection, x, y) {
@@ -79,10 +74,14 @@ gameplayState.prototype.buildObject = function(selection, x, y) {
 			wall.body.immovable = true;
 			break;
 		case "gate":
-			this.gates.create(x, y, "gate");
+			let gate = this.gates.create(x, y, "gate");
+			gate.body.immovable = true;
+			gate.scale.setTo(1.875,1.875);
+			gate.type = this.type;
 			break;
-		case "person":
-			let person = this.people.create(x, y, "person");
+		case "badger":
+			let person = this.people.create(x, y, "badger");
+			person.type = this.type;
 			person.body.velocity.y = 75;
 	}
 };
@@ -103,35 +102,40 @@ gameplayState.prototype.updateTime = function(){
 	this.timeText.text = "Time: " + (Math.floor((this.time - this.startTime) / 1000));
 };
 
-
 gameplayState.prototype.decreaseBlueBadgersLeft = function(){
 	this.blueBadgersLeft--;
 	this.blueBadgersLeftText.text = "Blue Badgers Left: " + this.blueBadgersLeft;
 };
 
-
-
 gameplayState.prototype.setSelectionWall = function(){
 	this.selection = "wall";
 };
 
-
 gameplayState.prototype.setSelectionBlueGate = function(){
 	this.selection = "gate";
+	this.type = "blue";
 };
 
-gameplayState.prototype.turn = function(person, wall) {
-	if (person.body.touching.down) {
-		person.body.velocity.y = 0;
-		person.body.velocity.x = 75;
-	} else if (person.body.touching.right) {
-		person.body.velocity.y = -75;
-		person.body.velocity.x = 0;
-	} else if (person.body.touching.up) {
-		person.body.velocity.y = 0;
-		person.body.velocity.x = -75;
-	} else if (person.body.touching.left) {
-		person.body.velocity.y = 75;
-		person.body.velocity.x = 0;
+gameplayState.prototype.turn = function(badger, wall) {
+	if (badger.body.touching.down) {
+		badger.body.velocity.y = 0;
+		badger.body.velocity.x = 75;
+	} else if (badger.body.touching.right) {
+		badger.body.velocity.y = -75;
+		badger.body.velocity.x = 0;
+	} else if (badger.body.touching.up) {
+		badger.body.velocity.y = 0;
+	  badger.body.velocity.x = -75;
+	} else if (badger.body.touching.left) {
+		badger.body.velocity.y = 75;
+		badger.body.velocity.x = 0;
 	}
 };
+
+gameplayState.prototype.access = function(badger, gate) {
+  if (badger.type !== gate.type) {
+    return true;
+  } else {
+		return false;
+	}
+}
