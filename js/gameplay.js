@@ -2,10 +2,12 @@ let gameplayState = function(){
 	this.selection = "";
 	this.type = "";
 	this.overWall = false;
+	this.cursor_x = 0;
+	this.cursor_y = 0;
 };
 
 gameplayState.prototype.create = function(){
-    game.physics.startSystem(Phaser.Physics.ARCADE);
+  game.physics.startSystem(Phaser.Physics.ARCADE);
 
 	this.startTime = this.game.time.time;
 	this.time = this.game.time.time;
@@ -34,6 +36,7 @@ gameplayState.prototype.create = function(){
 		}
 	}
 
+	game.input.activePointer.leftButton.onDown.add(this.buildObject, this);
 };
 
 gameplayState.prototype.update = function(){
@@ -55,10 +58,15 @@ gameplayState.prototype.update = function(){
 			this.graphics.beginFill(0xFF3300);
 			this.graphics.drawRect(box.x, box.y, box.width, box.height);
 			this.graphics.endFill();
-			if (mouse.leftButton.isDown) {
-				this.buildObject(this.selection, box.x, box.y);
-			}
+			this.cursor_x = box.x;
+			this.cursor_y = box.y;
 		}
+	}
+
+	// Checks if cursor is in UI portion
+	if (game.input.x < 513) {
+		this.cursor_x = -1;
+		this.cursor_y = -1;
 	}
 
 	if (this.cursors.right.isDown) {
@@ -74,33 +82,35 @@ gameplayState.prototype.update = function(){
 	game.physics.arcade.collide(this.people, this.gates, this.turn, this.access, this);
 };
 
-gameplayState.prototype.buildObject = function(selection, x, y) {
-	switch(selection) {
-		case "wall":
-			let wall = this.walls.create(x, y, "wall");
-			wall.scale.setTo(1.875,1.875);
-			wall.body.immovable = true;
-			wall.inputEnabled = true;
-			wall.events.onInputOver.add(this.allowSwitch, this);
-			wall.events.onInputOut.add(this.disallowSwitch, this);
-			break;
-		case "gate":
-			let gate = this.gates.create(x, y, "gate");
-			gate.body.immovable = true;
-			gate.scale.setTo(1.875,1.875);
-			gate.type = this.type;
-			break;
-		case "badger":
-			let person = this.people.create(x, y, "badger");
-			person.type = this.type;
-			person.body.velocity.y = 75;
-			break;
-		case "switch":
-			if (this.overWall) {
-				let arrow = this.switches.create(x, y, "switch");
-				arrow.pointing = "left";
-				arrow.body.immovable = true;
-			}
+gameplayState.prototype.buildObject = function() {
+	if (this.cursor_x !== -1) {
+		switch(this.selection) {
+			case "wall":
+				let wall = this.walls.create(this.cursor_x, this.cursor_y, "wall");
+				wall.scale.setTo(1.875,1.875);
+				wall.body.immovable = true;
+				wall.inputEnabled = true;
+				wall.events.onInputOver.add(this.allowSwitch, this);
+				wall.events.onInputOut.add(this.disallowSwitch, this);
+				break;
+			case "gate":
+				let gate = this.gates.create(this.cursor_x, this.cursor_y, "gate");
+				gate.body.immovable = true;
+				gate.scale.setTo(1.875,1.875);
+				gate.type = this.type;
+				break;
+			case "badger":
+				let person = this.people.create(this.cursor_x, this.cursor_y, "badger");
+				person.type = this.type;
+				person.body.velocity.y = 75;
+				break;
+			case "switch":
+				if (this.overWall) {
+					let arrow = this.switches.create(this.cursor_x, this.cursor_y, "switch");
+					arrow.pointing = "left";
+					arrow.body.immovable = true;
+				}
+		}
 	}
 };
 
