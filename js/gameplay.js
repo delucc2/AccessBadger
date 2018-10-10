@@ -1,6 +1,7 @@
 let gameplayState = function(){
 	this.selection = "";
 	this.type = "";
+	this.overWall = false;
 };
 
 gameplayState.prototype.create = function(){
@@ -19,6 +20,9 @@ gameplayState.prototype.create = function(){
 
 	this.people = game.add.group();
 	this.people.enableBody = true;
+
+	this.switches = game.add.group();
+	this.switches.enableBody = true;
 
 	this.setupUI();
 
@@ -62,6 +66,10 @@ gameplayState.prototype.update = function(){
 		this.type = "blue";
 	}
 
+	if (this.cursors.down.isDown) {
+		this.selection = "switch";
+	}
+
 	game.physics.arcade.collide(this.people, this.walls, this.turn, null, this);
 	game.physics.arcade.collide(this.people, this.gates, this.turn, this.access, this);
 };
@@ -72,6 +80,9 @@ gameplayState.prototype.buildObject = function(selection, x, y) {
 			let wall = this.walls.create(x, y, "wall");
 			wall.scale.setTo(1.875,1.875);
 			wall.body.immovable = true;
+			wall.inputEnabled = true;
+			wall.events.onInputOver.add(this.allowSwitch, this);
+			wall.events.onInputOut.add(this.disallowSwitch, this);
 			break;
 		case "gate":
 			let gate = this.gates.create(x, y, "gate");
@@ -83,6 +94,13 @@ gameplayState.prototype.buildObject = function(selection, x, y) {
 			let person = this.people.create(x, y, "badger");
 			person.type = this.type;
 			person.body.velocity.y = 75;
+			break;
+		case "switch":
+			if (this.overWall) {
+				let arrow = this.switches.create(x, y, "switch");
+				arrow.pointing = "left";
+				arrow.body.immovable = true;
+			}
 	}
 };
 
@@ -138,4 +156,12 @@ gameplayState.prototype.access = function(badger, gate) {
   } else {
 		return false;
 	}
-}
+};
+
+gameplayState.prototype.allowSwitch = function(wall) {
+	this.overWall = true;
+};
+
+gameplayState.prototype.disallowSwitch = function(wall) {
+	this.overWall = false;
+};
