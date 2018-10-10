@@ -121,5 +121,17 @@ gameplayState.prototype.setSelectionBlueGate = function(){
 };
 
 gameplayState.prototype.turn = function(person, wall) {
-	
-}
+	if (person.body.touching.down) {
+		person.body.velocity.y = 0;
+		person.body.velocity.x = 75;
+	} else if (person.body.touching.right) {
+		person.body.velocity.y = -75;
+		person.body.velocity.x = 0;
+	} else if (person.body.touching.up) {
+		person.body.velocity.y = 0;
+		person.body.velocity.x = -75;
+	} else if (person.body.touching.left) {
+		person.body.velocity.y = 75;
+		person.body.velocity.x = 0;
+	}
+};
