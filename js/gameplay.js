@@ -62,10 +62,13 @@ gameplayState.prototype.buildObject = function(selection, x, y) {
 	switch(selection) {
 		case "wall":
 			let wall = this.walls.create(x, y, "wall");
+			wall.scale.setTo(1.875,1.875);
 			wall.body.immovable = true;
 			break;
 		case "gate":
-			this.gates.create(x, y, "gate");
+			let gate = this.gates.create(x, y, "gate");
+			gate.scale.setTo(1.875,1.875);
+			gate.body.immovable = true;
 			break;
 		case "crowd":
 			let person = this.people.create(x, y, "person");
