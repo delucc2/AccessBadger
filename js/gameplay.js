@@ -1,8 +1,12 @@
 let gameplayState = function(){
 	this.selection = "";
+	
 };
 
 gameplayState.prototype.create = function(){
+	this.startTime = this.game.time.time;
+	this.time = this.game.time.time;
+	this.blueBadgersLeft = 0;
 	this.graphics = game.add.graphics(0,0);
 
 	this.walls = game.add.group();
@@ -33,6 +37,8 @@ gameplayState.prototype.update = function(){
 	this.graphics.beginFill(0xA5CBD2);
 	this.graphics.drawRect(0, 0, 513, 1125);
 	this.graphics.endFill();
+
+	this.updateTime();
 	// If the cursor is in a box, highlight as red
 	for (let i = 0; i < this.grid.length; i++) {
 		if (this.grid[i].contains(game.input.x, game.input.y)) {
@@ -63,15 +69,27 @@ gameplayState.prototype.buildObject = function(selection, x, y) {
 		case "gate":
 			this.gates.create(x, y, "gate");
 	}
-}
+};
 
 
 gameplayState.prototype.setupUI = function(){
+	this.graphics.beginFill(0xA5CBD2);
+	this.graphics.drawRect(0, 0, 513, 1125);
+	this.graphics.endFill();
+	this.timeText = game.add.text(10, 10, "Time: 0", {fontSize: '32px', fill: '#000'});
+	createButton(0, 60, "Blue Gate", "gate_ui", "blue", defaultAction);
+	createButton(0, 200, "Wall", "wall_ui", "red", defaultAction);
+	this.blueBadgersLeftText = game.add.text(10, 340, "Blue Badgers Left: 0", {fontSize: '32px', fill: '#000'});
+};
+
+gameplayState.prototype.updateTime = function(){
 	
-	createButton(0, 20, "Gate", defaultAction);
-}
+	this.time = this.game.time.time;
+	this.timeText.text = "Time: " + ((this.time - this.startTime) / 1000);
+};
 
 
-gameplayState.prototype.clear = function(){
-	//this.
-}
+gameplayState.prototype.decreaseBlueBadgersLeft = function(){
+	this.blueBadgersLeft--;
+	this.blueBadgersLeftText.text = "Blue Badgers Left: " + this.blueBadgersLeft;
+};
