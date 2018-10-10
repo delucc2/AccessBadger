@@ -67,6 +67,8 @@ gameplayState.prototype.update = function(){
 	if (this.cursors.right.isDown) {
 		this.selection = "person";
 	}
+
+	game.physics.arcade.collide(this.people, this.walls, this.turn, null, this);
 };
 
 gameplayState.prototype.buildObject = function(selection, x, y) {
@@ -116,5 +118,8 @@ gameplayState.prototype.setSelectionWall = function(){
 
 gameplayState.prototype.setSelectionBlueGate = function(){
 	this.selection = "gate";
-
 };
+
+gameplayState.prototype.turn = function(person, wall) {
+	
+}
