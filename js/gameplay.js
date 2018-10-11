@@ -1,5 +1,8 @@
 let gameplayState = function(){
 	this.selection = "";
+	this.isSpeechBubbleActive = false;
+	this.speechBubbleActiveTime = 5000;
+	this.speechBubbleStartTime = 0;
 };
 
 gameplayState.prototype.create = function(){
@@ -24,6 +27,10 @@ gameplayState.prototype.create = function(){
 			this.grid.push(new Phaser.Rectangle(x * 75 + 514, y * 75, 75, 75));
 		}
 	}
+
+	this.speechBubble = this.makeQuip(20, 500, "Hi, I'm an Access Badger");
+	this.isSpeechBubbleActive = true;
+	this.speechBubbleStartTime = game.time.time;
 
 };
 
@@ -51,6 +58,7 @@ gameplayState.prototype.update = function(){
 		}
 	}
 
+	this.updateSpeechBubble();	
 
 
 	
@@ -79,6 +87,8 @@ gameplayState.prototype.setupUI = function(){
 	this.createButton(0, 60, "Blue Gate", "gate_ui", "blue", this.setSelectionBlueGate);
 	this.createButton(0, 200, "Wall", "wall_ui", "red", this.setSelectionWall);
 	this.blueBadgersLeftText = game.add.text(10, 340, "Blue Badgers Left: 0", {fontSize: '32px', fill: '#000'});
+	this.talkBubble = this.createButton(350, 300, "THIS IS TEXT FROM AXX", "", "talk", this.destroyTalk, 100, 180);
+	this.intercom = this.createButton(350, 800, "THIS IS TEXT FROM THE COYOTE", "", "intercom", this.destroyIntercom, 30, 180);
 };
 
 gameplayState.prototype.updateTime = function(){
@@ -106,4 +116,20 @@ gameplayState.prototype.setSelectionBlueGate = function(){
 };
 
 
+gameplayState.prototype.destroyIntercom = function(){
+	this.intercom.kill();
+};
 
+gameplayState.prototype.destroyTalk = function(){
+	this.talkBubble.kill();
+};
+
+gameplayState.prototype.updateSpeechBubble = function(){
+	if(this.isSpeechBubbleActive){
+		let currentTime = game.time.time;
+		if(currentTime - this.speechBubbleStartTime > this.speechBubbleActiveTime){
+			this.isSpeechBubbleActive = false;
+			this.speechBubble.kill();
+		}
+	}
+};

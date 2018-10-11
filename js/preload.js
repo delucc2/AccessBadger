@@ -13,6 +13,9 @@ preloadState.prototype.preload = function(){
 	game.load.image("gate", "assets/gate_placeholder.png");
 	game.load.image("gate_ui", "assets/gate_ui_placeholder.png");
 	game.load.image("wall_ui", "assets/wall_ui_placeholder.png");
+	game.load.image("intercom_button_sheet", "assets/intercom_bubble.png");
+	game.load.image("talk_button_sheet", "assets/talk_bubble.png");
+	game.load.image("speech_bubble", "assets/speech_bubble.png");
 };
 
 preloadState.prototype.create = function(){
