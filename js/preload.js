@@ -16,6 +16,7 @@ preloadState.prototype.preload = function(){
 	game.load.image("intercom_button_sheet", "assets/intercom_bubble.png");
 	game.load.image("talk_button_sheet", "assets/talk_bubble.png");
 	game.load.image("speech_bubble", "assets/speech_bubble.png");
+	game.load.audio("music_1", "assets/chill synthwave stuff.ogg");
 };
 
 preloadState.prototype.create = function(){
