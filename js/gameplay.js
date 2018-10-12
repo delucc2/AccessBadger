@@ -80,6 +80,7 @@ gameplayState.prototype.update = function(){
 
 	game.physics.arcade.collide(this.people, this.walls, this.turn, null, this);
 	game.physics.arcade.collide(this.people, this.gates, this.turn, this.access, this);
+	game.physics.arcade.overlap(this.people, this.switches, this.switchTurnStart, null, this);
 };
 
 gameplayState.prototype.buildObject = function() {
@@ -90,8 +91,6 @@ gameplayState.prototype.buildObject = function() {
 				wall.scale.setTo(1.875,1.875);
 				wall.body.immovable = true;
 				wall.inputEnabled = true;
-				wall.events.onInputOver.add(this.allowSwitch, this);
-				wall.events.onInputOut.add(this.disallowSwitch, this);
 				break;
 			case "gate":
 				let gate = this.gates.create(this.cursor_x, this.cursor_y, "gate");
@@ -105,11 +104,10 @@ gameplayState.prototype.buildObject = function() {
 				person.body.velocity.y = 75;
 				break;
 			case "switch":
-				if (this.overWall) {
-					let arrow = this.switches.create(this.cursor_x, this.cursor_y, "switch");
-					arrow.pointing = "left";
-					arrow.body.immovable = true;
-				}
+				let arrow = this.switches.create(this.cursor_x, this.cursor_y, "switch");
+				arrow.pointing = "right";
+				arrow.body.immovable = true;
+				arrow.body.setSize(1,1,0,0);
 		}
 	}
 };
@@ -173,5 +171,19 @@ gameplayState.prototype.access = function(badger, gate) {
     return true;
   } else {
 		return false;
+	}
+}
+
+gameplayState.prototype.switchTurnStart = function(badger, arrow) {
+	game.time.events.add(Phaser.Timer.SECOND * 1, this.switchTurn, this, [badger, arrow]);
+}
+
+gameplayState.prototype.switchTurn = function(args) {
+	console.log("turning");
+	let badger = args[0];
+	let arrow = args[1];
+	if (arrow.facing = 'right') {
+		badger.body.velocity.x = 75;
+		badger.body.velocity.y = 0;
 	}
 }
