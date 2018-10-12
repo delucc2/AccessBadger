@@ -80,7 +80,7 @@ gameplayState.prototype.update = function(){
 
 	game.physics.arcade.collide(this.people, this.walls, this.turn, null, this);
 	game.physics.arcade.collide(this.people, this.gates, this.turn, this.access, this);
-	game.physics.arcade.overlap(this.people, this.switches, this.switchTurnStart, null, this);
+	game.physics.arcade.overlap(this.people, this.switches, this.switchTurn, this.switchCenter, this);
 };
 
 gameplayState.prototype.buildObject = function() {
@@ -107,7 +107,6 @@ gameplayState.prototype.buildObject = function() {
 				let arrow = this.switches.create(this.cursor_x, this.cursor_y, "switch");
 				arrow.pointing = "right";
 				arrow.body.immovable = true;
-				arrow.body.setSize(1,1,0,0);
 		}
 	}
 };
@@ -174,16 +173,16 @@ gameplayState.prototype.access = function(badger, gate) {
 	}
 }
 
-gameplayState.prototype.switchTurnStart = function(badger, arrow) {
-	game.time.events.add(Phaser.Timer.SECOND * 1, this.switchTurn, this, [badger, arrow]);
-}
-
-gameplayState.prototype.switchTurn = function(args) {
-	console.log("turning");
-	let badger = args[0];
-	let arrow = args[1];
+gameplayState.prototype.switchTurn = function(badger, arrow) {
 	if (arrow.facing = 'right') {
 		badger.body.velocity.x = 75;
 		badger.body.velocity.y = 0;
 	}
+}
+
+gameplayState.prototype.isCenter = function(object1, object2) {
+	if (object1.centerX === object2.centerX && object1.centerY == object2.centerY) {
+		return true;
+	}
+	return false;
 }
