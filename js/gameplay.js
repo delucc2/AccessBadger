@@ -1,10 +1,14 @@
 let gameplayState = function(){
 	this.selection = "";
+	this.type = "";
+	this.overWall = false;
+	this.cursor_x = 0;
+	this.cursor_y = 0;
 };
 
 gameplayState.prototype.create = function(){
-    game.physics.startSystem(Phaser.Physics.ARCADE);
-    
+  game.physics.startSystem(Phaser.Physics.ARCADE);
+
 	this.startTime = this.game.time.time;
 	this.time = this.game.time.time;
 	this.blueBadgersLeft = 0;
@@ -15,9 +19,12 @@ gameplayState.prototype.create = function(){
 
 	this.gates = game.add.group();
 	this.gates.enableBody = true;
-	
+
 	this.people = game.add.group();
 	this.people.enableBody = true;
+
+	this.switches = game.add.group();
+	this.switches.enableBody = true;
 
 	this.setupUI();
 
@@ -29,10 +36,12 @@ gameplayState.prototype.create = function(){
 		}
 	}
 
+	game.input.activePointer.leftButton.onDown.add(this.buildObject, this);
 };
 
 gameplayState.prototype.update = function(){
 	let mouse = game.input.activePointer;
+	this.cursors = game.input.keyboard.createCursorKeys();
 	//this.cursors = game.input.keyboard.createCursorKeys();
 
 	this.graphics.clear(); // Clears all grid boxes
@@ -49,30 +58,132 @@ gameplayState.prototype.update = function(){
 			this.graphics.beginFill(0xFF3300);
 			this.graphics.drawRect(box.x, box.y, box.width, box.height);
 			this.graphics.endFill();
-			if (mouse.leftButton.isDown) {
-				this.buildObject(this.selection, box.x, box.y);
-			}
+			this.cursor_x = box.x;
+			this.cursor_y = box.y;
 		}
 	}
 
-	if (this.cursors.up.isDown) {
-		this.selection = "wall";
+	// Checks if cursor is in UI portion
+	if (game.input.x < 513) {
+		this.cursor_x = -1;
+		this.cursor_y = -1;
+	}
+
+	if (this.cursors.right.isDown) {
+		this.selection = "badger";
+		this.type = "blue";
 	}
 
 	if (this.cursors.down.isDown) {
-		this.selection = "gate";
+		this.selection = "switch";
+	}
+
+	game.physics.arcade.collide(this.people, this.walls, this.turn, null, this);
+	game.physics.arcade.collide(this.people, this.gates, this.turn, this.access, this);
+	game.physics.arcade.overlap(this.people, this.switches, this.switchTurnStart, null, this);
+};
+
+gameplayState.prototype.buildObject = function() {
+	if (this.cursor_x !== -1) {
+		switch(this.selection) {
+			case "wall":
+				let wall = this.walls.create(this.cursor_x, this.cursor_y, "wall");
+				wall.scale.setTo(1.875,1.875);
+				wall.body.immovable = true;
+				wall.inputEnabled = true;
+				break;
+			case "gate":
+				let gate = this.gates.create(this.cursor_x, this.cursor_y, "gate");
+				gate.body.immovable = true;
+				gate.scale.setTo(1.875,1.875);
+				gate.type = this.type;
+				break;
+			case "badger":
+				let person = this.people.create(this.cursor_x, this.cursor_y, "badger");
+				person.type = this.type;
+				person.body.velocity.y = 75;
+				break;
+			case "switch":
+				let arrow = this.switches.create(this.cursor_x, this.cursor_y, "switch");
+				arrow.pointing = "right";
+				arrow.body.immovable = true;
+				arrow.body.setSize(1,1,0,0);
+		}
 	}
 };
 
-gameplayState.prototype.buildObject = function(selection, x, y) {
-	
-	switch(selection) {
-		case "wall":
-			let wall = this.walls.create(x, y, "wall");
-			wall.scale.setTo(1.875,1.875);
-			wall.body.immovable = true;
-			break;
-		case "gate":
-			this.gates.create(x, y, "gate");
+gameplayState.prototype.setupUI = function(){
+	this.graphics.beginFill(0xA5CBD2);
+	this.graphics.drawRect(0, 0, 513, 1125);
+	this.graphics.endFill();
+	this.timeText = game.add.text(10, 10, "Time: 0", {fontSize: '32px', fill: '#000'});
+	this.createButton(0, 60, "Blue Gate", "gate_ui", "blue", this.setSelectionBlueGate);
+	this.createButton(0, 200, "Wall", "wall_ui", "red", this.setSelectionWall);
+	this.blueBadgersLeftText = game.add.text(10, 340, "Blue Badgers Left: 0", {fontSize: '32px', fill: '#000'});
+};
+
+gameplayState.prototype.updateTime = function(){
+
+	this.time = this.game.time.time;
+	this.timeText.text = "Time: " + (Math.floor((this.time - this.startTime) / 1000));
+};
+
+gameplayState.prototype.decreaseBlueBadgersLeft = function(){
+	this.blueBadgersLeft--;
+	this.blueBadgersLeftText.text = "Blue Badgers Left: " + this.blueBadgersLeft;
+};
+
+gameplayState.prototype.setSelectionWall = function(){
+	this.selection = "wall";
+};
+
+gameplayState.prototype.setSelectionBlueGate = function(){
+	this.selection = "gate";
+	this.type = "blue";
+};
+
+gameplayState.prototype.allowSwitch = function(wall) {
+	this.overWall = true;
+};
+
+gameplayState.prototype.disallowSwitch = function(wall) {
+	this.overWall = false;
+};
+
+gameplayState.prototype.turn = function(badger, wall) {
+	if (badger.body.touching.down) {
+		badger.body.velocity.y = 0;
+		badger.body.velocity.x = 75;
+	} else if (badger.body.touching.right) {
+		badger.body.velocity.y = -75;
+		badger.body.velocity.x = 0;
+	} else if (badger.body.touching.up) {
+		badger.body.velocity.y = 0;
+	  badger.body.velocity.x = -75;
+	} else if (badger.body.touching.left) {
+		badger.body.velocity.y = 75;
+		badger.body.velocity.x = 0;
 	}
 };
+
+gameplayState.prototype.access = function(badger, gate) {
+  if (badger.type !== gate.type) {
+    return true;
+  } else {
+		return false;
+	}
+}
+
+gameplayState.prototype.switchTurnStart = function(badger, arrow) {
+	game.time.events.add(Phaser.Timer.SECOND * 1, this.switchTurn, this, [badger, arrow]);
+}
+
+gameplayState.prototype.switchTurn = function(args) {
+	console.log("turning");
+	let badger = args[0];
+	let arrow = args[1];
+	if (arrow.facing = 'right') {
+		badger.body.velocity.x = 75;
+		badger.body.velocity.y = 0;
+	}
+}

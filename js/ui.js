@@ -5,4 +5,3 @@ gameplayState.prototype.createButton = function(x, y, text, image, color, onClic
 	game.add.sprite(x+200, y+30, image);
 	return button;
 };
-
