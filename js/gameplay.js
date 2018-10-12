@@ -3,7 +3,7 @@ let gameplayState = function(){
 	this.type = "";
 	this.cursor_x = 0;
 	this.cursor_y = 0;
-	this.directions = ["right", "up", "left", "down"];
+	this.directions = ["right", "down", "left", "up"];
 	this.canPlace = true;
 };
 
@@ -86,12 +86,13 @@ gameplayState.prototype.update = function(){
 	// Collisions
 	game.physics.arcade.collide(this.people, this.walls, this.turn, null, this);
 	game.physics.arcade.collide(this.people, this.gates, this.turn, this.access, this);
-	game.physics.arcade.overlap(this.people, this.switches, this.switchTurn, this.switchCenter, this);
+	game.physics.arcade.overlap(this.people, this.switches, this.switchTurn, this.isCenter, this);
 };
 
 // Builds whatever is selected on a grid location
 gameplayState.prototype.buildObject = function() {
 	if (this.cursor_x !== -1 && this.canPlace) {
+		this.canPlace = false;
 		switch(this.selection) {
 			case "wall":
 				let wall = this.walls.create(this.cursor_x, this.cursor_y, "wall");
@@ -207,7 +208,12 @@ gameplayState.prototype.switchTurn = function(badger, arrow) {
 
 // Ensures bager is fully overlapped with switch before badger turns
 gameplayState.prototype.isCenter = function(object1, object2) {
-	if (object1.centerX === object2.centerX && object1.centerY == object2.centerY) {
+	let dif_x = Phaser.Math.difference(object1.centerX, object2.centerX);
+	let dif_y = Phaser.Math.difference(object1.centerY, object2.centerY);
+	console.log(dif_x, dif_y);
+	if (dif_x <= 2 && dif_y <= 2) {
+		object1.body.velocity.x = 0;
+		object1.body.velocity.y = 0;
 		return true;
 	}
 	return false;
@@ -215,17 +221,18 @@ gameplayState.prototype.isCenter = function(object1, object2) {
 
 // Turns the switch
 gameplayState.prototype.changeSwitch = function(arrow) {
-	console.log(arrow.pointing);
 	arrow.angle += 90;
 	if (arrow.pointing === 3) {
 		arrow.pointing = 0;
 	} else {
 		arrow.pointing += 1;
 	}
+	console.log(arrow.pointing);
 }
 
 // Forbids items to be place on top of one another
 gameplayState.prototype.disallowPlacement = function(x) {
+	console.log("hovering");
 	this.canPlace = false;
 }
 gameplayState.prototype.allowPlacement = function(x) {
