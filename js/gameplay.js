@@ -6,6 +6,8 @@ let gameplayState = function(){
 	this.directions = ["right", "down", "left", "up"];
 	this.canPlace = true;
 	this.score = 0;
+	this.counts = [0, 0, 0]; // Number of objects placed - [walls, switches, traps]
+	this.object_caps = [0, 0, 0]; // Caps for number of objects placed - [walls, switches, traps]
 };
 
 gameplayState.prototype.create = function(){
@@ -45,6 +47,8 @@ gameplayState.prototype.create = function(){
 			this.grid.push(new Phaser.Rectangle(x * 75 + 535, y * 75, 75, 75));
 		}
 	}
+
+	this.object_caps = [5,5,5];
 
 	game.input.activePointer.leftButton.onDown.add(this.buildObject, this);
 };
@@ -109,6 +113,11 @@ gameplayState.prototype.buildObject = function() {
 		this.canPlace = false;
 		switch(this.selection) {
 			case "wall":
+			  this.counts[0]++;
+				if (this.counts[0] > this.object_caps[0]) {
+					this.counts[0]--;
+					break;
+				}
 				let wall = this.walls.create(this.cursor_x, this.cursor_y, "wall");
 				wall.scale.setTo(1.875,1.875);
 				wall.body.immovable = true;
@@ -116,6 +125,7 @@ gameplayState.prototype.buildObject = function() {
 				wall.events.onInputOver.add(this.disallowPlacement, this);
 				wall.events.onInputOut.add(this.allowPlacement, this);
 				wall.events.onInputDown.add(this.delete, this);
+				this.index = 0;
 				break;
 			case "gate":
 				let gate = this.gates.create(this.cursor_x, this.cursor_y, "gate");
@@ -135,6 +145,11 @@ gameplayState.prototype.buildObject = function() {
 				badger.events.onInputOut.add(this.allowPlacement, this);
 				break;
 			case "switch":
+				this.counts[1]++;
+				if (this.counts[1] > this.object_caps[1]) {
+					this.counts[1]--;
+					break;
+				}
 				let arrow = this.switches.create(this.cursor_x + 37.5, this.cursor_y + 37.5, "switch");
 				arrow.pointing = 0;
 				arrow.body.immovable = true;
@@ -143,14 +158,21 @@ gameplayState.prototype.buildObject = function() {
 				arrow.events.onInputOver.add(this.disallowPlacement, this);
 				arrow.events.onInputOut.add(this.allowPlacement, this);
 				arrow.anchor.setTo(0.5, 0.5);
+				this.index = 1;
 				break;
 			case "trap":
+				this.counts[2]++;
+				if (this.counts[2] > this.object_caps[2]) {
+					this.counts[2]--;
+					break;
+				}
 				let trap = this.traps.create(this.cursor_x, this.cursor_y, "trap");
 				trap.body.immovable = true;
 				trap.inputEnabled = true;
 				trap.events.onInputOver.add(this.disallowPlacement, this);
 				trap.events.onInputOut.add(this.allowPlacement, this);
 				trap.events.onInputDown.add(this.delete, this);
+				this.index = 2;
 		}
 	}
 };
@@ -244,6 +266,7 @@ gameplayState.prototype.isCenter = function(object1, object2) {
 gameplayState.prototype.changeSwitch = function(arrow) {
 	if (this.selection === "delete") {
 		arrow.kill();
+		this.counts[1]--;
 	} else {
 		arrow.angle += 90;
 		if (arrow.pointing === 3) {
@@ -273,6 +296,7 @@ gameplayState.prototype.trapped = function(badger, trap) {
 
 gameplayState.prototype.delete = function(object) {
 	if (this.selection === "delete") {
+		this.counts[this.index]--;
 		object.kill();
 	}
 }
