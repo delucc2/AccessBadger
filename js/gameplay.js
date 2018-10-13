@@ -90,7 +90,7 @@ gameplayState.prototype.setupUI = function(){
 	this.graphics.drawRect(0, 0, 513, 1125);
 	this.graphics.endFill();
 	this.timeText = game.add.text(10, 10, "Time: 0", {fontSize: '32px', fill: '#000'});
-	this.createButton(0, 60, "Blue Gate", "gate_ui", "blue", this.setSelectionBlueGate);
+	this.createButton(0, 60, "Switch", "gate_ui", "blue", this.setSelectionBlueGate);
 	this.createButton(0, 200, "Wall", "wall_ui", "red", this.setSelectionWall);
 	this.blueBadgersLeftText = game.add.text(10, 340, "Blue Badgers Left: 0", {fontSize: '32px', fill: '#000'});
 	this.talkBubble = this.createButton(350, 300, "THIS IS TEXT FROM AXX", "", "talk", this.destroyTalk, 100, 180);
