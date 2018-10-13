@@ -5,6 +5,7 @@ let gameplayState = function(){
 	this.cursor_y = 0;
 	this.directions = ["right", "down", "left", "up"];
 	this.canPlace = true;
+	this.score = 0;
 };
 
 gameplayState.prototype.create = function(){
@@ -30,6 +31,9 @@ gameplayState.prototype.create = function(){
 	// Switch Group
 	this.switches = game.add.group();
 	this.switches.enableBody = true;
+
+	this.traps = game.add.group();
+	this.traps.enableBody = true;
 
 	this.setupUI();
 
@@ -83,10 +87,15 @@ gameplayState.prototype.update = function(){
 		this.selection = "switch";
 	}
 
+	if (this.cursors.up.isDown) {
+		this.selection = "trap";
+	}
+
 	// Collisions
 	game.physics.arcade.collide(this.people, this.walls, this.turn, null, this);
 	game.physics.arcade.collide(this.people, this.gates, this.turn, this.access, this);
 	game.physics.arcade.overlap(this.people, this.switches, this.switchTurn, this.isCenter, this);
+	game.physics.arcade.overlap(this.people, this.traps, this.trapped, this.isCenter, this);
 };
 
 // Builds whatever is selected on a grid location
@@ -128,6 +137,13 @@ gameplayState.prototype.buildObject = function() {
 				arrow.events.onInputOver.add(this.disallowPlacement, this);
 				arrow.events.onInputOut.add(this.allowPlacement, this);
 				arrow.anchor.setTo(0.5, 0.5);
+				break;
+			case "trap":
+				let trap = this.traps.create(this.cursor_x, this.cursor_y, "trap");
+				trap.body.immovable = true;
+				trap.inputEnabled = true;
+				trap.events.onInputOver.add(this.disallowPlacement, this);
+				trap.events.onInputOut.add(this.allowPlacement, this);
 		}
 	}
 };
@@ -237,4 +253,13 @@ gameplayState.prototype.disallowPlacement = function(x) {
 }
 gameplayState.prototype.allowPlacement = function(x) {
 	this.canPlace = true;
+}
+
+gameplayState.prototype.trapped = function(badger, trap) {
+	if (badger.type === "honeybadger") {
+		this.score += 1;
+	} else {
+		this.score -= 1;
+	}
+	badger.kill();
 }

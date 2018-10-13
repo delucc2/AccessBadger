@@ -11,6 +11,7 @@ preloadState.prototype.preload = function(){
 	game.load.image("gate_ui", "assets/gate_ui_placeholder.png");
 	game.load.image("wall_ui", "assets/wall_ui_placeholder.png");
 	game.load.image("switch", "assets/switch.png");
+	game.load.image("trap", "assets/trap.png");
 };
 
 preloadState.prototype.create = function(){
