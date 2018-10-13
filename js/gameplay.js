@@ -12,7 +12,7 @@ let gameplayState = function(){
 
 gameplayState.prototype.create = function(){
 	game.physics.startSystem(Phaser.Physics.ARCADE);
-	this.loadLevel();
+	
 	this.startTime = this.game.time.time;
 	this.time = this.game.time.time;
 	this.blueBadgersLeft = 0;
@@ -37,7 +37,7 @@ gameplayState.prototype.create = function(){
 	// Trap Group
 	this.traps = game.add.group();
 	this.traps.enableBody = true;
-
+	this.loadLevel();
 	this.setupUI();
 
 	// Draws Grid
@@ -304,7 +304,8 @@ gameplayState.prototype.delete = function(object) {
 
 
 gameplayState.prototype.loadLevel = function(){
-	jQuery.get("../levels/level1.txt", this.generateLevelFromFile);
+	let data = game.cache.getText('level1');
+	this.generateLevelFromFile(data);
 };
 
 gameplayState.prototype.generateLevelFromFile = function(text){
@@ -318,7 +319,33 @@ gameplayState.prototype.generateLevelFromFile = function(text){
 					let wall = this.walls.create(j * 75 + 535, i * 75, "wall");
 					wall.scale.setTo(1.875,1.875);
 					wall.body.immovable = true;
-					console.log("check");
+					
+					break;
+				case('2'):
+					let gate = this.gates.create(j * 75 + 535, i * 75, "gate");
+					gate.body.immovable = true;
+					gate.scale.setTo(1.875,1.875);
+					gate.type = "purple";
+					break;
+				case('3'):
+					let gate1 = this.gates.create(j * 75 + 535, i * 75, "gate");
+					gate1.body.immovable = true;
+					gate1.scale.setTo(1.875,1.875);
+					gate1.type = "green";
+					break;
+				case('4'):
+					let gate2 = this.gates.create(j * 75 + 535, i * 75, "gate");
+					gate2.body.immovable = true;
+					gate2.scale.setTo(1.875,1.875);
+					gate2.type = "orange";
+					break;
+				case('5'):
+					break;
+				case('6'):
+					break;
+				case('7'):
+					break;
+				case('8'):
 					break;
 				default:
 					break;
