@@ -1,9 +1,10 @@
 let gameplayState = function(){
 	this.selection = "";
 	this.type = "";
-	this.overWall = false;
 	this.cursor_x = 0;
 	this.cursor_y = 0;
+	this.directions = ["right", "down", "left", "up"];
+	this.canPlace = true;
 };
 
 gameplayState.prototype.create = function(){
@@ -14,15 +15,19 @@ gameplayState.prototype.create = function(){
 	this.blueBadgersLeft = 0;
 	this.graphics = game.add.graphics(0,0);
 
+	// Wall group
 	this.walls = game.add.group();
 	this.walls.enableBody = true;
 
+	// Gate group
 	this.gates = game.add.group();
 	this.gates.enableBody = true;
 
+	// Badger group
 	this.people = game.add.group();
 	this.people.enableBody = true;
 
+	// Switch Group
 	this.switches = game.add.group();
 	this.switches.enableBody = true;
 
@@ -42,7 +47,6 @@ gameplayState.prototype.create = function(){
 gameplayState.prototype.update = function(){
 	let mouse = game.input.activePointer;
 	this.cursors = game.input.keyboard.createCursorKeys();
-	//this.cursors = game.input.keyboard.createCursorKeys();
 
 	this.graphics.clear(); // Clears all grid boxes
 	//Sets ui zone
@@ -69,6 +73,7 @@ gameplayState.prototype.update = function(){
 		this.cursor_y = -1;
 	}
 
+	// For debug, controls for placing badgers and switches
 	if (this.cursors.right.isDown) {
 		this.selection = "badger";
 		this.type = "blue";
@@ -78,36 +83,51 @@ gameplayState.prototype.update = function(){
 		this.selection = "switch";
 	}
 
+	// Collisions
 	game.physics.arcade.collide(this.people, this.walls, this.turn, null, this);
 	game.physics.arcade.collide(this.people, this.gates, this.turn, this.access, this);
-	game.physics.arcade.overlap(this.people, this.switches, this.switchTurnStart, null, this);
+	game.physics.arcade.overlap(this.people, this.switches, this.switchTurn, this.isCenter, this);
 };
 
+// Builds whatever is selected on a grid location
 gameplayState.prototype.buildObject = function() {
-	if (this.cursor_x !== -1) {
+	if (this.cursor_x !== -1 && this.canPlace) {
+		this.canPlace = false;
 		switch(this.selection) {
 			case "wall":
 				let wall = this.walls.create(this.cursor_x, this.cursor_y, "wall");
 				wall.scale.setTo(1.875,1.875);
 				wall.body.immovable = true;
 				wall.inputEnabled = true;
+				wall.events.onInputOver.add(this.disallowPlacement, this);
+				wall.events.onInputOut.add(this.allowPlacement, this);
 				break;
 			case "gate":
 				let gate = this.gates.create(this.cursor_x, this.cursor_y, "gate");
 				gate.body.immovable = true;
 				gate.scale.setTo(1.875,1.875);
 				gate.type = this.type;
+				gate.inputEnabled = true;
+				gate.events.onInputOver.add(this.disallowPlacement, this);
+				gate.events.onInputOut.add(this.allowPlacement, this);
 				break;
 			case "badger":
 				let person = this.people.create(this.cursor_x, this.cursor_y, "badger");
 				person.type = this.type;
 				person.body.velocity.y = 75;
+				person.inputEnabled = true;
+				person.events.onInputOver.add(this.disallowPlacement, this);
+				person.events.onInputOut.add(this.allowPlacement, this);
 				break;
 			case "switch":
-				let arrow = this.switches.create(this.cursor_x, this.cursor_y, "switch");
-				arrow.pointing = "right";
+				let arrow = this.switches.create(this.cursor_x + 37.5, this.cursor_y + 37.5, "switch");
+				arrow.pointing = 0;
 				arrow.body.immovable = true;
-				arrow.body.setSize(1,1,0,0);
+				arrow.inputEnabled = true;
+				arrow.events.onInputDown.add(this.changeSwitch, this);
+				arrow.events.onInputOver.add(this.disallowPlacement, this);
+				arrow.events.onInputOut.add(this.allowPlacement, this);
+				arrow.anchor.setTo(0.5, 0.5);
 		}
 	}
 };
@@ -142,14 +162,7 @@ gameplayState.prototype.setSelectionBlueGate = function(){
 	this.type = "blue";
 };
 
-gameplayState.prototype.allowSwitch = function(wall) {
-	this.overWall = true;
-};
-
-gameplayState.prototype.disallowSwitch = function(wall) {
-	this.overWall = false;
-};
-
+// Turns badgers counter-clockwise
 gameplayState.prototype.turn = function(badger, wall) {
 	if (badger.body.touching.down) {
 		badger.body.velocity.y = 0;
@@ -166,6 +179,7 @@ gameplayState.prototype.turn = function(badger, wall) {
 	}
 };
 
+// Checks if badger can pass through gate
 gameplayState.prototype.access = function(badger, gate) {
   if (badger.type !== gate.type) {
     return true;
@@ -174,16 +188,53 @@ gameplayState.prototype.access = function(badger, gate) {
 	}
 }
 
-gameplayState.prototype.switchTurnStart = function(badger, arrow) {
-	game.time.events.add(Phaser.Timer.SECOND * 1, this.switchTurn, this, [badger, arrow]);
-}
-
-gameplayState.prototype.switchTurn = function(args) {
-	console.log("turning");
-	let badger = args[0];
-	let arrow = args[1];
-	if (arrow.facing = 'right') {
+// Turns badger according to switch direction
+gameplayState.prototype.switchTurn = function(badger, arrow) {
+	let direction = this.directions[arrow.pointing];
+	if (direction === 'right') {
 		badger.body.velocity.x = 75;
 		badger.body.velocity.y = 0;
+	} else if (direction === 'left') {
+		badger.body.velocity.x = -75;
+		badger.body.velocity.y = 0;
+	} else if (direction === 'up') {
+		badger.body.velocity.x = 0;
+		badger.body.velocity.y = -75;
+	} else if (direction === 'down') {
+		badger.body.velocity.x = 0;
+		badger.body.velocity.y = 75;
 	}
+}
+
+// Ensures bager is fully overlapped with switch before badger turns
+gameplayState.prototype.isCenter = function(object1, object2) {
+	let dif_x = Phaser.Math.difference(object1.centerX, object2.centerX);
+	let dif_y = Phaser.Math.difference(object1.centerY, object2.centerY);
+	console.log(dif_x, dif_y);
+	if (dif_x <= 2 && dif_y <= 2) {
+		object1.body.velocity.x = 0;
+		object1.body.velocity.y = 0;
+		return true;
+	}
+	return false;
+}
+
+// Turns the switch
+gameplayState.prototype.changeSwitch = function(arrow) {
+	arrow.angle += 90;
+	if (arrow.pointing === 3) {
+		arrow.pointing = 0;
+	} else {
+		arrow.pointing += 1;
+	}
+	console.log(arrow.pointing);
+}
+
+// Forbids items to be place on top of one another
+gameplayState.prototype.disallowPlacement = function(x) {
+	console.log("hovering");
+	this.canPlace = false;
+}
+gameplayState.prototype.allowPlacement = function(x) {
+	this.canPlace = true;
 }
