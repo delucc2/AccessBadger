@@ -5,11 +5,14 @@ let gameplayState = function(){
 	this.cursor_y = 0;
 	this.directions = ["right", "down", "left", "up"];
 	this.canPlace = true;
+	this.score = 0;
+	this.counts = [0, 0, 0]; // Number of objects placed - [walls, switches, traps]
+	this.object_caps = [0, 0, 0]; // Caps for number of objects placed - [walls, switches, traps]
 };
 
 gameplayState.prototype.create = function(){
-  game.physics.startSystem(Phaser.Physics.ARCADE);
-
+	game.physics.startSystem(Phaser.Physics.ARCADE);
+	
 	this.startTime = this.game.time.time;
 	this.time = this.game.time.time;
 	this.blueBadgersLeft = 0;
@@ -31,6 +34,10 @@ gameplayState.prototype.create = function(){
 	this.switches = game.add.group();
 	this.switches.enableBody = true;
 
+	// Trap Group
+	this.traps = game.add.group();
+	this.traps.enableBody = true;
+	this.loadLevel();
 	this.setupUI();
 
 	// Draws Grid
@@ -40,6 +47,8 @@ gameplayState.prototype.create = function(){
 			this.grid.push(new Phaser.Rectangle(x * 75 + 535, y * 75, 75, 75));
 		}
 	}
+
+	this.object_caps = [5,5,5];
 
 	game.input.activePointer.leftButton.onDown.add(this.buildObject, this);
 };
@@ -83,10 +92,19 @@ gameplayState.prototype.update = function(){
 		this.selection = "switch";
 	}
 
+	if (this.cursors.up.isDown) {
+		this.selection = "trap";
+	}
+
+	if (this.cursors.left.isDown) {
+		this.selection = "delete";
+	}
+
 	// Collisions
 	game.physics.arcade.collide(this.people, this.walls, this.turn, null, this);
 	game.physics.arcade.collide(this.people, this.gates, this.turn, this.access, this);
 	game.physics.arcade.overlap(this.people, this.switches, this.switchTurn, this.isCenter, this);
+	game.physics.arcade.overlap(this.people, this.traps, this.trapped, this.isCenter, this);
 };
 
 // Builds whatever is selected on a grid location
@@ -95,12 +113,19 @@ gameplayState.prototype.buildObject = function() {
 		this.canPlace = false;
 		switch(this.selection) {
 			case "wall":
+			  this.counts[0]++;
+				if (this.counts[0] > this.object_caps[0]) {
+					this.counts[0]--;
+					break;
+				}
 				let wall = this.walls.create(this.cursor_x, this.cursor_y, "wall");
 				wall.scale.setTo(1.875,1.875);
 				wall.body.immovable = true;
 				wall.inputEnabled = true;
 				wall.events.onInputOver.add(this.disallowPlacement, this);
 				wall.events.onInputOut.add(this.allowPlacement, this);
+				wall.events.onInputDown.add(this.delete, this);
+				this.index = 0;
 				break;
 			case "gate":
 				let gate = this.gates.create(this.cursor_x, this.cursor_y, "gate");
@@ -112,14 +137,19 @@ gameplayState.prototype.buildObject = function() {
 				gate.events.onInputOut.add(this.allowPlacement, this);
 				break;
 			case "badger":
-				let person = this.people.create(this.cursor_x, this.cursor_y, "badger");
-				person.type = this.type;
-				person.body.velocity.y = 75;
-				person.inputEnabled = true;
-				person.events.onInputOver.add(this.disallowPlacement, this);
-				person.events.onInputOut.add(this.allowPlacement, this);
+				let badger = this.people.create(this.cursor_x, this.cursor_y, "badger");
+				badger.type = this.type;
+				badger.body.velocity.y = 75;
+				badger.inputEnabled = true;
+				badger.events.onInputOver.add(this.disallowPlacement, this);
+				badger.events.onInputOut.add(this.allowPlacement, this);
 				break;
 			case "switch":
+				this.counts[1]++;
+				if (this.counts[1] > this.object_caps[1]) {
+					this.counts[1]--;
+					break;
+				}
 				let arrow = this.switches.create(this.cursor_x + 37.5, this.cursor_y + 37.5, "switch");
 				arrow.pointing = 0;
 				arrow.body.immovable = true;
@@ -128,6 +158,21 @@ gameplayState.prototype.buildObject = function() {
 				arrow.events.onInputOver.add(this.disallowPlacement, this);
 				arrow.events.onInputOut.add(this.allowPlacement, this);
 				arrow.anchor.setTo(0.5, 0.5);
+				this.index = 1;
+				break;
+			case "trap":
+				this.counts[2]++;
+				if (this.counts[2] > this.object_caps[2]) {
+					this.counts[2]--;
+					break;
+				}
+				let trap = this.traps.create(this.cursor_x, this.cursor_y, "trap");
+				trap.body.immovable = true;
+				trap.inputEnabled = true;
+				trap.events.onInputOver.add(this.disallowPlacement, this);
+				trap.events.onInputOut.add(this.allowPlacement, this);
+				trap.events.onInputDown.add(this.delete, this);
+				this.index = 2;
 		}
 	}
 };
@@ -143,7 +188,6 @@ gameplayState.prototype.setupUI = function(){
 };
 
 gameplayState.prototype.updateTime = function(){
-
 	this.time = this.game.time.time;
 	this.timeText.text = "Time: " + (Math.floor((this.time - this.startTime) / 1000));
 };
@@ -186,7 +230,7 @@ gameplayState.prototype.access = function(badger, gate) {
   } else {
 		return false;
 	}
-}
+};
 
 // Turns badger according to switch direction
 gameplayState.prototype.switchTurn = function(badger, arrow) {
@@ -204,37 +248,108 @@ gameplayState.prototype.switchTurn = function(badger, arrow) {
 		badger.body.velocity.x = 0;
 		badger.body.velocity.y = 75;
 	}
-}
+};
 
 // Ensures bager is fully overlapped with switch before badger turns
 gameplayState.prototype.isCenter = function(object1, object2) {
 	let dif_x = Phaser.Math.difference(object1.centerX, object2.centerX);
 	let dif_y = Phaser.Math.difference(object1.centerY, object2.centerY);
-	console.log(dif_x, dif_y);
 	if (dif_x <= 2 && dif_y <= 2) {
 		object1.body.velocity.x = 0;
 		object1.body.velocity.y = 0;
 		return true;
 	}
 	return false;
-}
+};
 
 // Turns the switch
 gameplayState.prototype.changeSwitch = function(arrow) {
-	arrow.angle += 90;
-	if (arrow.pointing === 3) {
-		arrow.pointing = 0;
+	if (this.selection === "delete") {
+		arrow.kill();
+		this.counts[1]--;
 	} else {
-		arrow.pointing += 1;
+		arrow.angle += 90;
+		if (arrow.pointing === 3) {
+			arrow.pointing = 0;
+		} else {
+			arrow.pointing += 1;
+		}
 	}
-	console.log(arrow.pointing);
-}
+};
 
 // Forbids items to be place on top of one another
 gameplayState.prototype.disallowPlacement = function(x) {
-	console.log("hovering");
 	this.canPlace = false;
-}
+};
+
 gameplayState.prototype.allowPlacement = function(x) {
 	this.canPlace = true;
-}
+};
+
+// If badger passes over trap, kill it and change score
+gameplayState.prototype.trapped = function(badger, trap) {
+	// If badger is not a honeybadger, lose a point
+	if (badger.type !== "honeybadger") {
+		this.score -= 1;
+	}
+	badger.kill();
+};
+
+gameplayState.prototype.delete = function(object) {
+	if (this.selection === "delete") {
+		this.counts[this.index]--;
+		object.kill();
+	}
+};
+
+
+gameplayState.prototype.loadLevel = function(){
+	let data = game.cache.getText('level1');
+	this.generateLevelFromFile(data);
+};
+
+gameplayState.prototype.generateLevelFromFile = function(text){
+	let textData = text.split('\n');
+	for(let i = 0; i < textData.length; i++){
+		let textLine = textData[i].split('');
+		for(let j = 0; j < textLine.length; j++){
+			switch(textLine[j]){
+			//	x * 75 + 535
+				case('1'):
+					let wall = this.walls.create(j * 75 + 535, i * 75, "wall");
+					wall.scale.setTo(1.875,1.875);
+					wall.body.immovable = true;
+					
+					break;
+				case('2'):
+					let gate = this.gates.create(j * 75 + 535, i * 75, "gate");
+					gate.body.immovable = true;
+					gate.scale.setTo(1.875,1.875);
+					gate.type = "purple";
+					break;
+				case('3'):
+					let gate1 = this.gates.create(j * 75 + 535, i * 75, "gate");
+					gate1.body.immovable = true;
+					gate1.scale.setTo(1.875,1.875);
+					gate1.type = "green";
+					break;
+				case('4'):
+					let gate2 = this.gates.create(j * 75 + 535, i * 75, "gate");
+					gate2.body.immovable = true;
+					gate2.scale.setTo(1.875,1.875);
+					gate2.type = "orange";
+					break;
+				case('5'):
+					break;
+				case('6'):
+					break;
+				case('7'):
+					break;
+				case('8'):
+					break;
+				default:
+					break;
+			}
+		}
+	} 
+};
