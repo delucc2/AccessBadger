@@ -45,8 +45,9 @@ gameplayState.prototype.create = function(){
 	// Trap Group
 	this.traps = game.add.group();
 	this.traps.enableBody = true;
-
+	this.object_caps = [5,5,5];
 	this.setupUI();
+
 
 	// Draws Grid
 	this.grid = [];
@@ -60,7 +61,7 @@ gameplayState.prototype.create = function(){
 	this.isSpeechBubbleActive = true;
 	this.speechBubbleStartTime = game.time.time;
 
-	this.object_caps = [5,5,5];
+	
 
 	game.input.activePointer.leftButton.onDown.add(this.buildObject, this);
 };
@@ -123,7 +124,7 @@ gameplayState.prototype.update = function(){
 
 // Builds whatever is selected on a grid location
 gameplayState.prototype.buildObject = function() {
-	console.log("build" + this.selection);
+	
 	if (this.cursor_x !== -1 && this.canPlace) {
 		if (this.selection !== "") { this.canPlace = false; }
 		switch(this.selection) {
@@ -131,9 +132,10 @@ gameplayState.prototype.buildObject = function() {
 			  this.counts[0]++;
 				if (this.counts[0] > this.object_caps[0]) {
 					this.counts[0]--;
+
 					break;
 				}
-				console.log("check");
+				this.wallButton.text.text = "Wall: " + (this.object_caps[0] - this.counts[0]);
 				let wall = this.walls.create(this.cursor_x, this.cursor_y, "wall");
 				wall.scale.setTo(1.875,1.875);
 				wall.body.immovable = true;
@@ -198,12 +200,17 @@ gameplayState.prototype.setupUI = function(){
 	this.graphics.drawRect(0, 0, 513, 1125);
 	this.graphics.endFill();
 	this.timeText = game.add.text(10, 10, "Time: 0", {fontSize: '32px', fill: '#000'});
-	this.createButton(0, 200, "Switch", "switch_ui", "blue", this.setSelectionSwitch);
-	this.createButton(0, 60, "Wall", "wall_ui", "red", this.setSelectionWall);
-	this.createButton(0, 340, "Trap", "trap_ui", "yellow", this.setSelectionTrap);
+	this.switchButton = this.createButton(0, 200, "Switch", "switch_ui", "blue", this.setSelectionSwitch);
+	this.wallButton = this.createButton(0, 60, "Wall", "wall_ui", "red", this.setSelectionWall);
+	this.trapButton = this.createButton(0, 340, "Trap", "trap_ui", "yellow", this.setSelectionTrap);
 	this.blueBadgersLeftText = game.add.text(10, 480, "Blue Badgers Left: 0", {fontSize: '32px', fill: '#000'});
 	this.talkBubble = this.createButton(350, 300, "THIS IS TEXT FROM AXX", "", "talk", this.destroyTalk, 100, 180);
 	this.intercom = this.createButton(350, 800, "THIS IS TEXT FROM THE COYOTE", "", "intercom", this.destroyIntercom, 30, 180);
+
+
+	this.wallButton.text.text = "Wall: " + this.object_caps[0];
+	this.switchButton.text.text = "Switch: " + this.object_caps[1];
+	this.trapButton.text.text = "Trap: " + this.object_caps[2];
 };
 
 gameplayState.prototype.updateTime = function(){
@@ -217,9 +224,7 @@ gameplayState.prototype.decreaseBlueBadgersLeft = function(){
 };
 
 gameplayState.prototype.setSelectionWall = function(){
-	console.log(this.selection);
 	this.selection = "wall";
-	console.log("lksafj");
 };
 
 gameplayState.prototype.setSelectionSwitch = function(){
