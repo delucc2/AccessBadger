@@ -94,7 +94,7 @@ gameplayState.prototype.update = function(){
 		this.cursor_x = -1;
 		this.cursor_y = -1;
 	}
-	this.updateSpeechBubble();	
+	this.updateSpeechBubble();
 
 	// For debug, controls for placing badgers and switches
 	if (this.cursors.right.isDown) {
@@ -125,7 +125,7 @@ gameplayState.prototype.update = function(){
 gameplayState.prototype.buildObject = function() {
 	console.log("build" + this.selection);
 	if (this.cursor_x !== -1 && this.canPlace) {
-		this.canPlace = false;
+		if (this.selection !== "") { this.canPlace = false; }
 		switch(this.selection) {
 			case "wall":
 			  this.counts[0]++;
