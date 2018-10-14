@@ -20,4 +20,3 @@ gameplayState.prototype.makeQuip = function(x, y, text){
 	quipGroup.add(text);
 	return quipGroup;
 };
-
