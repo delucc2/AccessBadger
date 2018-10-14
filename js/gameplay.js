@@ -11,8 +11,8 @@ let gameplayState = function(){
 };
 
 gameplayState.prototype.create = function(){
-  game.physics.startSystem(Phaser.Physics.ARCADE);
-
+	game.physics.startSystem(Phaser.Physics.ARCADE);
+	
 	this.startTime = this.game.time.time;
 	this.time = this.game.time.time;
 	this.blueBadgersLeft = 0;
@@ -37,7 +37,7 @@ gameplayState.prototype.create = function(){
 	// Trap Group
 	this.traps = game.add.group();
 	this.traps.enableBody = true;
-
+	this.loadLevel();
 	this.setupUI();
 
 	// Draws Grid
@@ -230,7 +230,7 @@ gameplayState.prototype.access = function(badger, gate) {
   } else {
 		return false;
 	}
-}
+};
 
 // Turns badger according to switch direction
 gameplayState.prototype.switchTurn = function(badger, arrow) {
@@ -248,7 +248,7 @@ gameplayState.prototype.switchTurn = function(badger, arrow) {
 		badger.body.velocity.x = 0;
 		badger.body.velocity.y = 75;
 	}
-}
+};
 
 // Ensures bager is fully overlapped with switch before badger turns
 gameplayState.prototype.isCenter = function(object1, object2) {
@@ -260,7 +260,7 @@ gameplayState.prototype.isCenter = function(object1, object2) {
 		return true;
 	}
 	return false;
-}
+};
 
 // Turns the switch
 gameplayState.prototype.changeSwitch = function(arrow) {
@@ -275,15 +275,16 @@ gameplayState.prototype.changeSwitch = function(arrow) {
 			arrow.pointing += 1;
 		}
 	}
-}
+};
 
 // Forbids items to be place on top of one another
 gameplayState.prototype.disallowPlacement = function(x) {
 	this.canPlace = false;
-}
+};
+
 gameplayState.prototype.allowPlacement = function(x) {
 	this.canPlace = true;
-}
+};
 
 // If badger passes over trap, kill it and change score
 gameplayState.prototype.trapped = function(badger, trap) {
@@ -292,11 +293,63 @@ gameplayState.prototype.trapped = function(badger, trap) {
 		this.score -= 1;
 	}
 	badger.kill();
-}
+};
 
 gameplayState.prototype.delete = function(object) {
 	if (this.selection === "delete") {
 		this.counts[this.index]--;
 		object.kill();
 	}
-}
+};
+
+
+gameplayState.prototype.loadLevel = function(){
+	let data = game.cache.getText('level1');
+	this.generateLevelFromFile(data);
+};
+
+gameplayState.prototype.generateLevelFromFile = function(text){
+	let textData = text.split('\n');
+	for(let i = 0; i < textData.length; i++){
+		let textLine = textData[i].split('');
+		for(let j = 0; j < textLine.length; j++){
+			switch(textLine[j]){
+			//	x * 75 + 535
+				case('1'):
+					let wall = this.walls.create(j * 75 + 535, i * 75, "wall");
+					wall.scale.setTo(1.875,1.875);
+					wall.body.immovable = true;
+					
+					break;
+				case('2'):
+					let gate = this.gates.create(j * 75 + 535, i * 75, "gate");
+					gate.body.immovable = true;
+					gate.scale.setTo(1.875,1.875);
+					gate.type = "purple";
+					break;
+				case('3'):
+					let gate1 = this.gates.create(j * 75 + 535, i * 75, "gate");
+					gate1.body.immovable = true;
+					gate1.scale.setTo(1.875,1.875);
+					gate1.type = "green";
+					break;
+				case('4'):
+					let gate2 = this.gates.create(j * 75 + 535, i * 75, "gate");
+					gate2.body.immovable = true;
+					gate2.scale.setTo(1.875,1.875);
+					gate2.type = "orange";
+					break;
+				case('5'):
+					break;
+				case('6'):
+					break;
+				case('7'):
+					break;
+				case('8'):
+					break;
+				default:
+					break;
+			}
+		}
+	} 
+};
