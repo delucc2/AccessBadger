@@ -12,10 +12,18 @@ let gameplayState = function(){
 	this.badger_nums = [0, 0, 0, 0];
 	this.prev_x = -1;
 	this.prev_y = -1;
+	this.isSpeechBubbleActive = false;
+	this.speechBubbleActiveTime = 5000;
+	this.speechBubbleStartTime = 0;
 };
 
 gameplayState.prototype.create = function(){
-	game.physics.startSystem(Phaser.Physics.ARCADE);
+  game.physics.startSystem(Phaser.Physics.ARCADE);
+
+	//audio
+	this.music = game.add.audio('music_1');
+	this.music.loop = true;
+    this.music.play();
 
 	this.startTime = this.game.time.time;
 	this.time = this.game.time.time;
@@ -52,6 +60,7 @@ gameplayState.prototype.create = function(){
 	this.loadLevel();
 	this.setupUI();
 
+
 	// Draws Grid
 	this.grid = [];
 	for (let x = 0; x < 25; x++) {
@@ -62,11 +71,17 @@ gameplayState.prototype.create = function(){
 
 	this.object_caps = [5,5,5];
 	this.badger_nums = [2, 2, 2, 2];
+	this.speechBubble = this.makeQuip(20, 500, "Hi, I'm an Access Badger");
+	this.isSpeechBubbleActive = true;
+	this.speechBubbleStartTime = game.time.time;
+
+	
 
 	game.input.activePointer.leftButton.onDown.add(this.buildObject, this);
 };
 
 gameplayState.prototype.update = function(){
+
 	let mouse = game.input.activePointer;
 	this.cursors = game.input.keyboard.createCursorKeys();
 	let one = game.input.keyboard.addKey(Phaser.Keyboard.ONE);
@@ -96,6 +111,7 @@ gameplayState.prototype.update = function(){
 		this.cursor_x = -1;
 		this.cursor_y = -1;
 	}
+	this.updateSpeechBubble();
 
 	// For debug, controls for placing badgers and switches
 	if (this.cursors.right.isDown) {
@@ -142,8 +158,10 @@ gameplayState.prototype.buildObject = function() {
 			  this.counts[0]++;
 				if (this.counts[0] > this.object_caps[0]) {
 					this.counts[0]--;
+
 					break;
 				}
+				this.wallButton.text.text = "Wall: " + (this.object_caps[0] - this.counts[0]);
 				let wall = this.walls.create(this.cursor_x, this.cursor_y, "wall");
 				wall.scale.setTo(1.875,1.875);
 				wall.body.immovable = true;
@@ -176,6 +194,7 @@ gameplayState.prototype.buildObject = function() {
 					this.counts[1]--;
 					break;
 				}
+				this.switchButton.text.text = "Switch: " + (this.object_caps[1] - this.counts[1]);
 				let arrow = this.switches.create(this.cursor_x + 37.5, this.cursor_y + 37.5, "switch");
 				arrow.pointing = 0;
 				arrow.body.immovable = true;
@@ -192,6 +211,7 @@ gameplayState.prototype.buildObject = function() {
 					this.counts[2]--;
 					break;
 				}
+				this.trapButton.text.text = "Trap: " + (this.object_caps[2] - this.counts[2]);
 				let trap = this.traps.create(this.cursor_x, this.cursor_y, "trap");
 				trap.body.immovable = true;
 				trap.inputEnabled = true;
@@ -225,9 +245,17 @@ gameplayState.prototype.setupUI = function(){
 	this.graphics.drawRect(0, 0, 513, 1125);
 	this.graphics.endFill();
 	this.timeText = game.add.text(10, 10, "Time: 0", {fontSize: '32px', fill: '#000'});
-	this.createButton(0, 60, "Blue Gate", "gate_ui", "blue", this.setSelectionBlueGate);
-	this.createButton(0, 200, "Wall", "wall_ui", "red", this.setSelectionWall);
-	this.blueBadgersLeftText = game.add.text(10, 340, "Blue Badgers Left: 0", {fontSize: '32px', fill: '#000'});
+	this.switchButton = this.createButton(0, 200, "Switch", "switch_ui", "blue", this.setSelectionSwitch);
+	this.wallButton = this.createButton(0, 60, "Wall", "wall_ui", "red", this.setSelectionWall);
+	this.trapButton = this.createButton(0, 340, "Trap", "trap_ui", "yellow", this.setSelectionTrap);
+	this.blueBadgersLeftText = game.add.text(10, 480, "Blue Badgers Left: 0", {fontSize: '32px', fill: '#000'});
+	this.talkBubble = this.createButton(350, 300, "THIS IS TEXT FROM AXX", "", "talk", this.destroyTalk, 100, 180);
+	this.intercom = this.createButton(350, 800, "THIS IS TEXT FROM THE COYOTE", "", "intercom", this.destroyIntercom, 30, 180);
+
+
+	this.wallButton.text.text = "Wall: " + this.object_caps[0];
+	this.switchButton.text.text = "Switch: " + this.object_caps[1];
+	this.trapButton.text.text = "Trap: " + this.object_caps[2];
 };
 
 gameplayState.prototype.updateTime = function(){
@@ -244,9 +272,12 @@ gameplayState.prototype.setSelectionWall = function(){
 	this.selection = "wall";
 };
 
-gameplayState.prototype.setSelectionBlueGate = function(){
-	this.selection = "gate";
-	this.type = "blue";
+gameplayState.prototype.setSelectionSwitch = function(){
+	this.selection = "switch";
+};
+
+gameplayState.prototype.setSelectionTrap = function(){
+	this.selection = "trap";
 };
 
 // Turns badgers counter-clockwise
@@ -266,6 +297,9 @@ gameplayState.prototype.turn = function(badger, wall) {
 	}
 };
 
+gameplayState.prototype.destroyIntercom = function(){
+	this.intercom.kill();
+};
 // Checks if badger can pass through gate
 gameplayState.prototype.access = function(badger, gate) {
   if (badger.type !== gate.type) {
@@ -275,6 +309,9 @@ gameplayState.prototype.access = function(badger, gate) {
 	}
 };
 
+gameplayState.prototype.destroyTalk = function(){
+	this.talkBubble.kill();
+};
 // Turns badger according to switch direction
 gameplayState.prototype.switchTurn = function(badger, arrow) {
 	let direction = this.directions[arrow.pointing];
@@ -293,6 +330,15 @@ gameplayState.prototype.switchTurn = function(badger, arrow) {
 	}
 };
 
+gameplayState.prototype.updateSpeechBubble = function(){
+	if(this.isSpeechBubbleActive){
+		let currentTime = game.time.time;
+		if(currentTime - this.speechBubbleStartTime > this.speechBubbleActiveTime){
+			this.isSpeechBubbleActive = false;
+			this.speechBubble.kill();
+		}
+	}
+};
 // Ensures bager is fully overlapped with switch before badger turns
 gameplayState.prototype.isCenter = function(object1, object2) {
 	let dif_x = Phaser.Math.difference(object1.centerX, object2.centerX);
