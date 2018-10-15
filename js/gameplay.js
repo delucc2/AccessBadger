@@ -10,6 +10,8 @@ let gameplayState = function(){
 	this.object_caps = [0, 0, 0]; // Caps for number of objects placed - [walls, switches, traps]
 	this.badger_types = ["blue", "red", "yellow", "honeybadger"];
 	this.badger_nums = [0, 0, 0, 0];
+	this.prev_x = -1;
+	this.prev_y = -1;
 };
 
 gameplayState.prototype.create = function(){
@@ -121,8 +123,9 @@ gameplayState.prototype.update = function(){
 
 // Builds whatever is selected on a grid location
 gameplayState.prototype.buildObject = function() {
-	if (this.cursor_x !== -1 && this.canPlace) {
-		this.canPlace = false;
+	if (this.cursor_x !== -1 && this.canPlace && (this.cursor_x !== this.prev_x || this.cursor_y !== this.prev_y) && this.selection !== "") {
+		this.prev_x = this.cursor_x;
+		this.prev_y = this.cursor_y;
 		switch(this.selection) {
 			case "wall":
 			  this.counts[0]++;
@@ -336,7 +339,6 @@ gameplayState.prototype.spawnBadger = function(args) {
 		}
 	}
 	if (is_valid) {
-		console.log("Stopping timer");
 		this.spawnLoop.stop();
 	}
 	while (!is_valid) {
