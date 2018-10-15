@@ -45,6 +45,10 @@ gameplayState.prototype.create = function(){
 	// Spawn Points
 	this.entrances = game.add.group();
 
+	// Exit Points
+	this.exits = game.add.group();
+	this.exits.enableBody = true;
+
 	this.loadLevel();
 	this.setupUI();
 
@@ -66,6 +70,7 @@ gameplayState.prototype.update = function(){
 	let mouse = game.input.activePointer;
 	this.cursors = game.input.keyboard.createCursorKeys();
 	let one = game.input.keyboard.addKey(Phaser.Keyboard.ONE);
+	let two = game.input.keyboard.addKey(Phaser.Keyboard.TWO);
 
 	this.graphics.clear(); // Clears all grid boxes
 	//Sets ui zone
@@ -114,11 +119,17 @@ gameplayState.prototype.update = function(){
 		this.selection = "entrance";
 	}
 
+	if (two.isDown) {
+		this.selection = 'exit';
+		this.type = 'blue';
+	}
+
 	// Collisions
 	game.physics.arcade.collide(this.people, this.walls, this.turn, null, this);
 	game.physics.arcade.collide(this.people, this.gates, this.turn, this.access, this);
 	game.physics.arcade.overlap(this.people, this.switches, this.switchTurn, this.isCenter, this);
 	game.physics.arcade.overlap(this.people, this.traps, this.trapped, this.isCenter, this);
+	game.physics.arcade.overlap(this.people, this.exits, this.exit, this.isCenter, this);
 };
 
 // Builds whatever is selected on a grid location
@@ -199,6 +210,12 @@ gameplayState.prototype.buildObject = function() {
 				enter_timer.loop(2000, this.spawnBadger, this, [x, y]);
 				enter_timer.start();
 				this.spawnLoop = enter_timer;
+				break;
+			case "exit":
+				let exit = this.exits.create(this.cursor_x, this.cursor_y, "start");
+				exit.type = this.type;
+				exit.events.onInputOver.add(this.disallowPlacement, this);
+				exit.events.onInputOut.add(this.allowPlacement, this);
 		}
 	}
 };
@@ -361,6 +378,14 @@ gameplayState.prototype.loadLevel = function(){
 	let data = game.cache.getText('level1');
 	this.generateLevelFromFile(data);
 };
+
+gameplayState.prototype.exit = function(badger, exit) {
+	if (badger.type === exit.type) {
+		this.score += 1;
+	}
+	console.log(this.score);
+	badger.kill();
+}
 
 gameplayState.prototype.generateLevelFromFile = function(text){
 	let textData = text.split('\n');
