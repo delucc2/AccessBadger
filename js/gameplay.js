@@ -168,6 +168,7 @@ gameplayState.prototype.buildObject = function() {
 					this.counts[1]--;
 					break;
 				}
+				this.switchButton.text.text = "Switch: " + (this.object_caps[1] - this.counts[1]);
 				let arrow = this.switches.create(this.cursor_x + 37.5, this.cursor_y + 37.5, "switch");
 				arrow.pointing = 0;
 				arrow.body.immovable = true;
@@ -184,6 +185,7 @@ gameplayState.prototype.buildObject = function() {
 					this.counts[2]--;
 					break;
 				}
+				this.trapButton.text.text = "Trap: " + (this.object_caps[2] - this.counts[2]);
 				let trap = this.traps.create(this.cursor_x, this.cursor_y, "trap");
 				trap.body.immovable = true;
 				trap.inputEnabled = true;
