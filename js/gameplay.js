@@ -75,7 +75,7 @@ gameplayState.prototype.create = function(){
 	this.isSpeechBubbleActive = true;
 	this.speechBubbleStartTime = game.time.time;
 
-	
+
 
 	game.input.activePointer.leftButton.onDown.add(this.buildObject, this);
 };
@@ -181,12 +181,16 @@ gameplayState.prototype.buildObject = function() {
 				gate.events.onInputOut.add(this.allowPlacement, this);
 				break;
 			case "badger":
-				let badger = this.people.create(this.cursor_x, this.cursor_y, "badger");
+				let badger = this.people.create(this.cursor_x + 37.5, this.cursor_y + 37.5, "badger");
 				badger.type = this.type;
 				badger.body.velocity.y = 75;
 				badger.inputEnabled = true;
 				badger.events.onInputOver.add(this.disallowPlacement, this);
 				badger.events.onInputOut.add(this.allowPlacement, this);
+				badger.animations.add("walk", [0,1,0,2], 6, true);
+				badger.animations.play("walk");
+				badger.anchor.setTo(0.5, 0.5);
+				badger.angle += 180;
 				break;
 			case "switch":
 				this.counts[1]++;
@@ -295,6 +299,7 @@ gameplayState.prototype.turn = function(badger, wall) {
 		badger.body.velocity.y = 75;
 		badger.body.velocity.x = 0;
 	}
+	badger.angle -= 90;
 };
 
 gameplayState.prototype.destroyIntercom = function(){
