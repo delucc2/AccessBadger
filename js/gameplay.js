@@ -8,11 +8,13 @@ let gameplayState = function(){
 	this.score = 0;
 	this.counts = [0, 0, 0]; // Number of objects placed - [walls, switches, traps]
 	this.object_caps = [0, 0, 0]; // Caps for number of objects placed - [walls, switches, traps]
+	this.badger_types = ["blue", "red", "yellow", "honeybadger"];
+	this.badger_nums = [0, 0, 0, 0];
 };
 
 gameplayState.prototype.create = function(){
 	game.physics.startSystem(Phaser.Physics.ARCADE);
-	
+
 	this.startTime = this.game.time.time;
 	this.time = this.game.time.time;
 	this.blueBadgersLeft = 0;
@@ -37,6 +39,10 @@ gameplayState.prototype.create = function(){
 	// Trap Group
 	this.traps = game.add.group();
 	this.traps.enableBody = true;
+
+	// Spawn Points
+	this.entrances = game.add.group();
+
 	this.loadLevel();
 	this.setupUI();
 
@@ -49,6 +55,7 @@ gameplayState.prototype.create = function(){
 	}
 
 	this.object_caps = [5,5,5];
+	this.badger_nums = [2, 2, 2, 2];
 
 	game.input.activePointer.leftButton.onDown.add(this.buildObject, this);
 };
@@ -56,6 +63,7 @@ gameplayState.prototype.create = function(){
 gameplayState.prototype.update = function(){
 	let mouse = game.input.activePointer;
 	this.cursors = game.input.keyboard.createCursorKeys();
+	let one = game.input.keyboard.addKey(Phaser.Keyboard.ONE);
 
 	this.graphics.clear(); // Clears all grid boxes
 	//Sets ui zone
@@ -98,6 +106,10 @@ gameplayState.prototype.update = function(){
 
 	if (this.cursors.left.isDown) {
 		this.selection = "delete";
+	}
+
+	if (one.isDown) {
+		this.selection = "entrance";
 	}
 
 	// Collisions
@@ -173,6 +185,17 @@ gameplayState.prototype.buildObject = function() {
 				trap.events.onInputOut.add(this.allowPlacement, this);
 				trap.events.onInputDown.add(this.delete, this);
 				this.index = 2;
+				break;
+			case "entrance":
+				let entrance = this.entrances.create(this.cursor_x, this.cursor_y, "start");
+				entrance.events.onInputOver.add(this.disallowPlacement, this);
+				entrance.events.onInputOut.add(this.allowPlacement, this);
+				let enter_timer = game.time.create(false);
+				let x = this.cursor_x;
+				let y = this.cursor_y;
+				enter_timer.loop(2000, this.spawnBadger, this, [x, y]);
+				enter_timer.start();
+				this.spawnLoop = enter_timer;
 		}
 	}
 };
@@ -302,6 +325,35 @@ gameplayState.prototype.delete = function(object) {
 	}
 };
 
+gameplayState.prototype.spawnBadger = function(args) {
+	let x = args[0];
+	let y = args[1];
+	let is_valid = true;
+	let badger_type = -1;
+	for (let i = 0; i < this.badger_nums.length; i++) {
+		if (this.badger_nums[i] !== 0) {
+			is_valid = false;
+		}
+	}
+	if (is_valid) {
+		console.log("Stopping timer");
+		this.spawnLoop.stop();
+	}
+	while (!is_valid) {
+		badger_type = game.rnd.integerInRange(0, 3);
+		if (this.badger_nums[badger_type] !== 0) {
+			is_valid = true;
+		}
+	}
+	if (badger_type !== -1) {
+		console.log(badger_type);
+		let badger = this.people.create(x, y, "badger");
+		badger.body.velocity.y = 75;
+		badger.type = this.badger_types[badger_type];
+		this.badger_nums[badger_type]--;
+		console.log(badger.type, " left: ", this.badger_nums[badger_type]);
+	}
+}
 
 gameplayState.prototype.loadLevel = function(){
 	let data = game.cache.getText('level1');
@@ -319,7 +371,7 @@ gameplayState.prototype.generateLevelFromFile = function(text){
 					let wall = this.walls.create(j * 75 + 535, i * 75, "wall");
 					wall.scale.setTo(1.875,1.875);
 					wall.body.immovable = true;
-					
+
 					break;
 				case('2'):
 					let gate = this.gates.create(j * 75 + 535, i * 75, "gate");
@@ -351,5 +403,5 @@ gameplayState.prototype.generateLevelFromFile = function(text){
 					break;
 			}
 		}
-	} 
+	}
 };

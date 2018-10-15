@@ -12,6 +12,7 @@ preloadState.prototype.preload = function(){
 	game.load.image("wall_ui", "assets/wall_ui_placeholder.png");
 	game.load.image("switch", "assets/switch.png");
 	game.load.image("trap", "assets/trap.png");
+	game.load.image("start", "assets/start_placeholder.png");
 	game.load.text("level1", "levels/level1.txt");
 };
 
