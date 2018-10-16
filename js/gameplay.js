@@ -561,8 +561,10 @@ gameplayState.prototype.pauseGame = function(){
 
 
 gameplayState.prototype.startGame = function(){
-	this.startSpawning();
-	this.started = true;
+	if (this.buildPhase) {
+		this.startSpawning();
+		this.buildPhase = false;
+	}
 };
 
 gameplayState.prototype.setDelete = function(){
