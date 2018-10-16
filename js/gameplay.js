@@ -85,6 +85,11 @@ gameplayState.prototype.create = function(){
 	this.speechBubbleStartTime = game.time.time;
 
 	game.input.activePointer.leftButton.onDown.add(this.buildObject, this);
+
+	this.correct = game.add.audio("correct");
+	this.correct_exit = game.add.audio("correct exit");
+	this.trap = game.add.audio("trap sfx");
+	this.wrong = game.add.audio("wrong");
 };
 
 gameplayState.prototype.update = function(){
@@ -297,6 +302,7 @@ gameplayState.prototype.access = function(badger, gate) {
 					badger.animations.play("walk");
 					break;
 			}
+			this.correct.play();
 		}
 		badger.passed = true;
     return false;
@@ -391,6 +397,7 @@ gameplayState.prototype.trapped = function(badger, trap) {
 	if (badger.type !== "honeybadger") {
 		this.score -= 1;
 	}
+	this.trap.play();
 	badger.kill();
 };
 
@@ -452,7 +459,13 @@ gameplayState.prototype.loadLevel = function(x){
 
 gameplayState.prototype.exit = function(badger, exit) {
 	if (badger.type === exit.type && badger.passed) {
+		this.correct_exit.play();
 		this.score += 1;
+	} else if (badger.type === "honeybadger") {
+		this.score -= 1;
+		this.wrong.play();
+	} else {
+		this.wrong.play();
 	}
 	console.log(this.score);
 	badger.kill();
