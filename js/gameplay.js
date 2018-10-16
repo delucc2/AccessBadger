@@ -44,10 +44,6 @@ gameplayState.prototype.create = function(){
 	this.gates = game.add.group();
 	this.gates.enableBody = true;
 
-	// Badger group
-	this.people = game.add.group();
-	this.people.enableBody = true;
-
 	// Switch Group
 	this.switches = game.add.group();
 	this.switches.enableBody = true;
@@ -62,6 +58,10 @@ gameplayState.prototype.create = function(){
 	// Exit Points
 	this.exits = game.add.group();
 	this.exits.enableBody = true;
+
+	// Badger group
+	this.people = game.add.group();
+	this.people.enableBody = true;
 
 	this.loadLevel();
 	this.setupUI();
@@ -127,20 +127,7 @@ gameplayState.prototype.update = function(){
 	}
 
 	if (this.cursors.down.isDown) {
-		this.people.callAll("kill");
-		this.spawnLoop.stop();
-		this.floor.callAll("kill");
-		this.walls.callAll("kill");
-		this.gates.callAll("kill");
-		this.switches.callAll("kill");
-		this.traps.callAll("kill");
-		this.entrances.callAll("kill");
-		this.exits.callAll("kill");
-
-		this.loadLevel();
-		this.object_caps = [5,5,5];
-		this.badger_nums = [2, 2, 2, 2];
-		this.started = false;
+		this.restart();
 	}
 
 	// Collisions
@@ -272,8 +259,8 @@ gameplayState.prototype.destroyIntercom = function(){
 // Checks if badger can pass through gate
 gameplayState.prototype.access = function(badger, gate) {
   if (gate.type.includes(badger.type) || badger.type === 'honeybadger') {
-    return false;
 		badger.passed = true;
+    return false;
   } else {
 		return true;
 	}
@@ -288,15 +275,19 @@ gameplayState.prototype.switchTurn = function(badger, arrow) {
 	if (direction === 'right') {
 		badger.body.velocity.x = 75;
 		badger.body.velocity.y = 0;
+		badger.angle = 90;
 	} else if (direction === 'left') {
 		badger.body.velocity.x = -75;
 		badger.body.velocity.y = 0;
+		badger.angle = 270;
 	} else if (direction === 'up') {
 		badger.body.velocity.x = 0;
 		badger.body.velocity.y = -75;
+		badger.angle = 0;
 	} else if (direction === 'down') {
 		badger.body.velocity.x = 0;
 		badger.body.velocity.y = 75;
+		badger.angle = 180;
 	}
 };
 
@@ -424,11 +415,13 @@ gameplayState.prototype.restart = function() {
 	this.entrances.callAll("kill");
 	this.exits.callAll("kill");
 
-	this.spawnLoop.stop();
+	if (this.spawnLoop != null) { this.spawnLoop.stop(); }
 	this.loadLevel();
+	this.counts = [0, 0, 0];
 	this.object_caps = [5,5,5];
 	this.badger_nums = [2, 2, 2, 2];
 	this.started = false;
+	this.score = 0;
 }
 
 gameplayState.prototype.generateLevelFromFile = function(text){
@@ -444,22 +437,33 @@ gameplayState.prototype.generateLevelFromFile = function(text){
 				case('1'):
 					let wall = this.walls.create(j * 75 + 535, i * 75, "wall");
 					wall.body.immovable = true;
-
+					wall.inputEnabled = true;
+					wall.events.onInputOver.add(this.disallowPlacement, this);
+					wall.events.onInputOut.add(this.allowPlacement, this);
 					break;
 				case('2'):
 					let gate = this.gates.create(j * 75 + 535, i * 75, "purple gate");
 					gate.body.immovable = true;
 					gate.type = ["blue", "red"];
+					gate.inputEnabled = true;
+					gate.events.onInputDown.add(this.changeSwitch, this);
+					gate.events.onInputOver.add(this.disallowPlacement, this);
 					break;
 				case('3'):
 					let gate1 = this.gates.create(j * 75 + 535, i * 75, "green gate");
 					gate1.body.immovable = true;
 					gate1.type = ["blue", "yellow"];
+					gate1.inputEnabled = true;
+					gate1.events.onInputDown.add(this.changeSwitch, this);
+					gate1.events.onInputOver.add(this.disallowPlacement, this);
 					break;
 				case('4'):
 					let gate2 = this.gates.create(j * 75 + 535, i * 75, "orange gate");
 					gate2.body.immovable = true;
 					gate2.type = ["red", "yellow"];
+					gate2.inputEnabled = true;
+					gate2.events.onInputDown.add(this.changeSwitch, this);
+					gate2.events.onInputOver.add(this.disallowPlacement, this);
 					break;
 				case('5'):
 					let entrance = this.entrances.create(j * 75 + 535, i * 75, "start");
