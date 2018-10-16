@@ -21,14 +21,17 @@ gameplayState.prototype.create = function(){
   game.physics.startSystem(Phaser.Physics.ARCADE);
 
 	//audio
-	this.music = game.add.audio('music_1');
+	/*this.music = game.add.audio('music_1');
 	this.music.loop = true;
-    this.music.play();
+    this.music.play();*/
 
 	this.startTime = this.game.time.time;
 	this.time = this.game.time.time;
 	this.blueBadgersLeft = 0;
 	this.graphics = game.add.graphics(0,0);
+
+	// Floor Group
+	this.floor = game.add.group();
 
 	// Wall group
 	this.walls = game.add.group();
@@ -81,7 +84,6 @@ gameplayState.prototype.create = function(){
 };
 
 gameplayState.prototype.update = function(){
-
 	let mouse = game.input.activePointer;
 	this.cursors = game.input.keyboard.createCursorKeys();
 	let one = game.input.keyboard.addKey(Phaser.Keyboard.ONE);
@@ -172,7 +174,7 @@ gameplayState.prototype.buildObject = function() {
 				this.index = 0;
 				break;
 			case "gate":
-				let gate = this.gates.create(this.cursor_x, this.cursor_y, "gate");
+				let gate = this.gates.create(this.cursor_x, this.cursor_y, "green gate");
 				gate.body.immovable = true;
 				gate.scale.setTo(1.875,1.875);
 				gate.type = this.type;
@@ -236,7 +238,7 @@ gameplayState.prototype.buildObject = function() {
 				this.spawnLoop = enter_timer;
 				break;
 			case "exit":
-				let exit = this.exits.create(this.cursor_x, this.cursor_y, "start");
+				let exit = this.exits.create(this.cursor_x, this.cursor_y, "blue exit");
 				exit.type = this.type;
 				exit.events.onInputOver.add(this.disallowPlacement, this);
 				exit.events.onInputOut.add(this.allowPlacement, this);
@@ -410,18 +412,21 @@ gameplayState.prototype.spawnBadger = function(args) {
 		this.spawnLoop.stop();
 	}
 	while (!is_valid) {
-		badger_type = game.rnd.integerInRange(0, 3);
-		if (this.badger_nums[badger_type] !== 0) {
+		badger_index = game.rnd.integerInRange(0, 3);
+		if (this.badger_nums[badger_index] !== 0) {
 			is_valid = true;
 		}
 	}
-	if (badger_type !== -1) {
-		console.log(badger_type);
-		let badger = this.people.create(x, y, "badger");
+	if (badger_index !== -1) {
+		let badger_type = this.badger_types[badger_index];
+		let badger = this.people.create(x + 37.5, y + 37.5, badger_type);
 		badger.body.velocity.y = 75;
-		badger.type = this.badger_types[badger_type];
-		this.badger_nums[badger_type]--;
-		console.log(badger.type, " left: ", this.badger_nums[badger_type]);
+		badger.type = badger_type;
+		this.badger_nums[badger_index]--;
+		badger.animations.add("walk", [0,1,0,2], 6, true);
+		badger.animations.play("walk");
+		badger.anchor.setTo(0.5, 0.5);
+		badger.angle += 180;
 	}
 }
 
@@ -445,28 +450,27 @@ gameplayState.prototype.generateLevelFromFile = function(text){
 		for(let j = 0; j < textLine.length; j++){
 			switch(textLine[j]){
 			//	x * 75 + 535
+				case('0'):
+					this.floor.create(j * 75 + 535, i * 75, "floor");
+					break;
 				case('1'):
 					let wall = this.walls.create(j * 75 + 535, i * 75, "wall");
-					wall.scale.setTo(1.875,1.875);
 					wall.body.immovable = true;
 
 					break;
 				case('2'):
-					let gate = this.gates.create(j * 75 + 535, i * 75, "gate");
+					let gate = this.gates.create(j * 75 + 535, i * 75, "purple gate");
 					gate.body.immovable = true;
-					gate.scale.setTo(1.875,1.875);
 					gate.type = "purple";
 					break;
 				case('3'):
-					let gate1 = this.gates.create(j * 75 + 535, i * 75, "gate");
+					let gate1 = this.gates.create(j * 75 + 535, i * 75, "green gate");
 					gate1.body.immovable = true;
-					gate1.scale.setTo(1.875,1.875);
 					gate1.type = "green";
 					break;
 				case('4'):
-					let gate2 = this.gates.create(j * 75 + 535, i * 75, "gate");
+					let gate2 = this.gates.create(j * 75 + 535, i * 75, "orange gate");
 					gate2.body.immovable = true;
-					gate2.scale.setTo(1.875,1.875);
 					gate2.type = "orange";
 					break;
 				case('5'):
