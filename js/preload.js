@@ -6,6 +6,7 @@ preloadState.prototype.preload = function(){
 	game.load.spritesheet("blue_button_sheet", "assets/blue_button_sheet.png", 512, 128);
 	game.load.spritesheet("red_button_sheet", "assets/red_button_sheet.png", 512, 128);
 	game.load.spritesheet("yellow_button_sheet", "assets/yellow_button_sheet.png", 512, 128);
+	game.load.spritesheet("orange_button_sheet", "assets/orange_button_sheet.png", 160, 128);
 	game.load.image("wall", "assets/wall.png");
 	game.load.image("floor", "assets/floor.png");
 	game.load.image("green gate", "assets/green_gate.png");
