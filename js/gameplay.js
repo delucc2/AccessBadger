@@ -264,7 +264,7 @@ gameplayState.prototype.destroyIntercom = function(){
 };
 // Checks if badger can pass through gate
 gameplayState.prototype.access = function(badger, gate) {
-  if (gate.type.includes(badger.type) || badger.type === 'honeybadger') {
+  if ((gate.type.includes(badger.type) || badger.type === 'honeybadger') && this.notSide(badger, gate)){
 		if (badger.passed === false) {
 			switch (badger.type) {
 				case "blue":
@@ -287,6 +287,16 @@ gameplayState.prototype.access = function(badger, gate) {
 		return true;
 	}
 };
+
+// Checks to see if the badger is colliding with the gate's side
+gameplayState.prototype.notSide = function(badger, gate) {
+	if ((badger.centerY === gate.centerY && gate.direction === "horizontal") ||
+		(badger.centerX === gate.centerX && gate.direction === "vertical")) {
+		return true;
+	} else {
+		return false;
+	}
+}
 
 gameplayState.prototype.destroyTalk = function(){
 	this.talkBubble.kill();
@@ -468,6 +478,7 @@ gameplayState.prototype.generateLevelFromFile = function(text){
 					let gate = this.gates.create(j * 75 + 535, i * 75, "purple gate");
 					gate.body.immovable = true;
 					gate.type = ["blue", "red"];
+					gate.direction = "horizontal";
 					gate.inputEnabled = true;
 					gate.events.onInputDown.add(this.changeSwitch, this);
 					gate.events.onInputOver.add(this.disallowPlacement, this);
@@ -476,6 +487,7 @@ gameplayState.prototype.generateLevelFromFile = function(text){
 					let gate1 = this.gates.create(j * 75 + 535, i * 75, "green gate");
 					gate1.body.immovable = true;
 					gate1.type = ["blue", "yellow"];
+					gate1.direction = "horizontal";
 					gate1.inputEnabled = true;
 					gate1.events.onInputDown.add(this.changeSwitch, this);
 					gate1.events.onInputOver.add(this.disallowPlacement, this);
@@ -484,6 +496,7 @@ gameplayState.prototype.generateLevelFromFile = function(text){
 					let gate2 = this.gates.create(j * 75 + 535, i * 75, "orange gate");
 					gate2.body.immovable = true;
 					gate2.type = ["red", "yellow"];
+					gate2.direction = "horizontal";
 					gate2.inputEnabled = true;
 					gate2.events.onInputDown.add(this.changeSwitch, this);
 					gate2.events.onInputOver.add(this.disallowPlacement, this);
