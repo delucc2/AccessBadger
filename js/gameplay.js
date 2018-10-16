@@ -78,8 +78,6 @@ gameplayState.prototype.create = function(){
 	this.isSpeechBubbleActive = true;
 	this.speechBubbleStartTime = game.time.time;
 
-
-
 	game.input.activePointer.leftButton.onDown.add(this.buildObject, this);
 };
 
@@ -121,14 +119,6 @@ gameplayState.prototype.update = function(){
 		this.type = "blue";
 	}
 
-	if (this.cursors.down.isDown) {
-		this.selection = "switch";
-	}
-
-	if (this.cursors.up.isDown) {
-		this.selection = "trap";
-	}
-
 	if (this.cursors.left.isDown) {
 		this.selection = "delete";
 	}
@@ -160,7 +150,6 @@ gameplayState.prototype.buildObject = function() {
 			  this.counts[0]++;
 				if (this.counts[0] > this.object_caps[0]) {
 					this.counts[0]--;
-
 					break;
 				}
 				this.wallButton.text.text = "Wall: " + (this.object_caps[0] - this.counts[0]);
@@ -171,14 +160,6 @@ gameplayState.prototype.buildObject = function() {
 				wall.events.onInputOut.add(this.allowPlacement, this);
 				wall.events.onInputDown.add(this.delete, this);
 				this.index = 0;
-				break;
-			case "gate":
-				let gate = this.gates.create(this.cursor_x, this.cursor_y, "green gate");
-				gate.body.immovable = true;
-				gate.type = this.type;
-				gate.inputEnabled = true;
-				gate.events.onInputOver.add(this.disallowPlacement, this);
-				gate.events.onInputOut.add(this.allowPlacement, this);
 				break;
 			case "badger":
 				let badger = this.people.create(this.cursor_x + 37.5, this.cursor_y + 37.5, "badger");
@@ -307,10 +288,11 @@ gameplayState.prototype.destroyIntercom = function(){
 };
 // Checks if badger can pass through gate
 gameplayState.prototype.access = function(badger, gate) {
-  if (badger.type !== gate.type) {
-    return true;
+  if (gate.type.includes(badger.type) || badger.type === 'honeybadger') {
+    return false;
+		badger.passed = true;
   } else {
-		return false;
+		return true;
 	}
 };
 
@@ -420,6 +402,7 @@ gameplayState.prototype.spawnBadger = function(args) {
 		let badger = this.people.create(x + 37.5, y + 37.5, badger_type);
 		badger.body.velocity.y = 75;
 		badger.type = badger_type;
+		badger.passed = false;
 		this.badger_nums[badger_index]--;
 		badger.animations.add("walk", [0,1,0,2], 6, true);
 		badger.animations.play("walk");
@@ -434,7 +417,7 @@ gameplayState.prototype.loadLevel = function(){
 };
 
 gameplayState.prototype.exit = function(badger, exit) {
-	if (badger.type === exit.type) {
+	if (badger.type === exit.type && badger.passed) {
 		this.score += 1;
 	}
 	console.log(this.score);
@@ -459,25 +442,46 @@ gameplayState.prototype.generateLevelFromFile = function(text){
 				case('2'):
 					let gate = this.gates.create(j * 75 + 535, i * 75, "purple gate");
 					gate.body.immovable = true;
-					gate.type = "purple";
+					gate.type = ["blue", "red"];
 					break;
 				case('3'):
 					let gate1 = this.gates.create(j * 75 + 535, i * 75, "green gate");
 					gate1.body.immovable = true;
-					gate1.type = "green";
+					gate1.type = ["blue", "yellow"];
 					break;
 				case('4'):
 					let gate2 = this.gates.create(j * 75 + 535, i * 75, "orange gate");
 					gate2.body.immovable = true;
-					gate2.type = "orange";
+					gate2.type = ["red", "yellow"];
 					break;
 				case('5'):
+					let entrance = this.entrances.create(j * 75 + 535, i * 75, "start");
+					entrance.events.onInputOver.add(this.disallowPlacement, this);
+					entrance.events.onInputOut.add(this.allowPlacement, this);
+					let enter_timer = game.time.create(false);
+					let x = j * 75 + 535;
+					let y = i * 75;
+					enter_timer.loop(2000, this.spawnBadger, this, [x, y]);
+					enter_timer.start();
+					this.spawnLoop = enter_timer;
 					break;
 				case('6'):
+					let exit_blue = this.exits.create(j * 75 + 535, i * 75, "blue exit");
+					exit_blue.type = "blue";
+					exit_blue.events.onInputOver.add(this.disallowPlacement, this);
+					exit_blue.events.onInputOut.add(this.allowPlacement, this);
 					break;
 				case('7'):
+					let exit_red = this.exits.create(j * 75 + 535, i * 75, "red exit");
+					exit_red.type = "red";
+					exit_red.events.onInputOver.add(this.disallowPlacement, this);
+					exit_red.events.onInputOut.add(this.allowPlacement, this);
 					break;
 				case('8'):
+					let exit_yellow = this.exits.create(j * 75 + 535, i * 75, "yellow exit");
+					exit_yellow.type = "yellow";
+					exit_yellow.events.onInputOver.add(this.disallowPlacement, this);
+					exit_yellow.events.onInputOut.add(this.allowPlacement, this);
 					break;
 				default:
 					break;
