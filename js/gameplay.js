@@ -259,6 +259,22 @@ gameplayState.prototype.destroyIntercom = function(){
 // Checks if badger can pass through gate
 gameplayState.prototype.access = function(badger, gate) {
   if (gate.type.includes(badger.type) || badger.type === 'honeybadger') {
+		if (badger.passed === false) {
+			switch (badger.type) {
+				case "blue":
+					badger.loadTexture("blue jacket");
+					badger.animations.play("walk");
+					break;
+				case "red":
+					badger.loadTexture("red jacket");
+					badger.animations.play("walk");
+					break;
+				case "yellow":
+					badger.loadTexture("yellow jacket");
+					badger.animations.play("walk");
+					break;
+			}
+		}
 		badger.passed = true;
     return false;
   } else {

@@ -12,8 +12,11 @@ preloadState.prototype.preload = function(){
 	game.load.image("orange gate", "assets/orange_gate.png");
 	game.load.image("purple gate", "assets/purple_gate.png");
 	game.load.spritesheet("blue", "assets/BadgerBlueWalk.png", 75, 75);
+	game.load.spritesheet("blue jacket", "assets/BadgerBlueWalk_Coat.png", 75, 75);
 	game.load.spritesheet("red", "assets/BadgerredWalk.png", 75, 75);
+	game.load.spritesheet("red jacket", "assets/BadgerRedWalk_Coat.png", 75, 75);
 	game.load.spritesheet("yellow", "assets/BadgerYellowWalk.png", 75, 75);
+	game.load.spritesheet("yellow jacket", "assets/BadgerYellowWalk_Coat.png", 75, 75);
 	game.load.image("gate_ui", "assets/gate_ui_placeholder.png");
 	game.load.image("wall_ui", "assets/wall_ui_placeholder.png");
 	game.load.image("switch_ui", "assets/switch_ui_placeholder.png");
