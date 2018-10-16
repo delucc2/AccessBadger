@@ -126,6 +126,23 @@ gameplayState.prototype.update = function(){
 		this.selection = "delete";
 	}
 
+	if (this.cursors.down.isDown) {
+		this.people.callAll("kill");
+		this.spawnLoop.stop();
+		this.floor.callAll("kill");
+		this.walls.callAll("kill");
+		this.gates.callAll("kill");
+		this.switches.callAll("kill");
+		this.traps.callAll("kill");
+		this.entrances.callAll("kill");
+		this.exits.callAll("kill");
+
+		this.loadLevel();
+		this.object_caps = [5,5,5];
+		this.badger_nums = [2, 2, 2, 2];
+		this.started = false;
+	}
+
 	// Collisions
 	game.physics.arcade.collide(this.people, this.walls, this.turn, null, this);
 	game.physics.arcade.collide(this.people, this.gates, this.turn, this.access, this);
@@ -395,6 +412,23 @@ gameplayState.prototype.exit = function(badger, exit) {
 	}
 	console.log(this.score);
 	badger.kill();
+}
+
+gameplayState.prototype.restart = function() {
+	this.people.callAll("kill");
+	this.floor.callAll("kill");
+	this.walls.callAll("kill");
+	this.gates.callAll("kill");
+	this.switches.callAll("kill");
+	this.traps.callAll("kill");
+	this.entrances.callAll("kill");
+	this.exits.callAll("kill");
+
+	this.spawnLoop.stop();
+	this.loadLevel();
+	this.object_caps = [5,5,5];
+	this.badger_nums = [2, 2, 2, 2];
+	this.started = false;
 }
 
 gameplayState.prototype.generateLevelFromFile = function(text){
