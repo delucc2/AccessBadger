@@ -15,6 +15,9 @@ let gameplayState = function(){
 	this.isSpeechBubbleActive = false;
 	this.speechBubbleActiveTime = 5000;
 	this.speechBubbleStartTime = 0;
+	this.entrance_x;
+	this.entrance_y;
+	this.started = false;
 };
 
 gameplayState.prototype.create = function(){
@@ -114,22 +117,13 @@ gameplayState.prototype.update = function(){
 	this.updateSpeechBubble();
 
 	// For debug, controls for placing badgers and switches
-	if (this.cursors.right.isDown) {
-		this.selection = "badger";
-		this.type = "blue";
+	if (this.cursors.right.isDown && !this.started) {
+		this.startSpawning();
+		this.started = true;
 	}
 
 	if (this.cursors.left.isDown) {
 		this.selection = "delete";
-	}
-
-	if (one.isDown) {
-		this.selection = "entrance";
-	}
-
-	if (two.isDown) {
-		this.selection = 'exit';
-		this.type = 'blue';
 	}
 
 	// Collisions
@@ -160,18 +154,6 @@ gameplayState.prototype.buildObject = function() {
 				wall.events.onInputOut.add(this.allowPlacement, this);
 				wall.events.onInputDown.add(this.delete, this);
 				this.index = 0;
-				break;
-			case "badger":
-				let badger = this.people.create(this.cursor_x + 37.5, this.cursor_y + 37.5, "badger");
-				badger.type = this.type;
-				badger.body.velocity.y = 75;
-				badger.inputEnabled = true;
-				badger.events.onInputOver.add(this.disallowPlacement, this);
-				badger.events.onInputOut.add(this.allowPlacement, this);
-				badger.animations.add("walk", [0,1,0,2], 6, true);
-				badger.animations.play("walk");
-				badger.anchor.setTo(0.5, 0.5);
-				badger.angle += 180;
 				break;
 			case "switch":
 				this.counts[1]++;
@@ -205,22 +187,6 @@ gameplayState.prototype.buildObject = function() {
 				trap.events.onInputDown.add(this.delete, this);
 				this.index = 2;
 				break;
-			case "entrance":
-				let entrance = this.entrances.create(this.cursor_x, this.cursor_y, "start");
-				entrance.events.onInputOver.add(this.disallowPlacement, this);
-				entrance.events.onInputOut.add(this.allowPlacement, this);
-				let enter_timer = game.time.create(false);
-				let x = this.cursor_x;
-				let y = this.cursor_y;
-				enter_timer.loop(2000, this.spawnBadger, this, [x, y]);
-				enter_timer.start();
-				this.spawnLoop = enter_timer;
-				break;
-			case "exit":
-				let exit = this.exits.create(this.cursor_x, this.cursor_y, "blue exit");
-				exit.type = this.type;
-				exit.events.onInputOver.add(this.disallowPlacement, this);
-				exit.events.onInputOut.add(this.allowPlacement, this);
 		}
 	}
 };
@@ -411,6 +377,13 @@ gameplayState.prototype.spawnBadger = function(args) {
 	}
 }
 
+gameplayState.prototype.startSpawning = function() {
+	let enter_timer = game.time.create(false);
+	enter_timer.loop(2000, this.spawnBadger, this, [this.entrance_x, this.entrance_y]);
+	enter_timer.start();
+	this.spawnLoop = enter_timer;
+}
+
 gameplayState.prototype.loadLevel = function(){
 	let data = game.cache.getText('level1');
 	this.generateLevelFromFile(data);
@@ -458,12 +431,8 @@ gameplayState.prototype.generateLevelFromFile = function(text){
 					let entrance = this.entrances.create(j * 75 + 535, i * 75, "start");
 					entrance.events.onInputOver.add(this.disallowPlacement, this);
 					entrance.events.onInputOut.add(this.allowPlacement, this);
-					let enter_timer = game.time.create(false);
-					let x = j * 75 + 535;
-					let y = i * 75;
-					enter_timer.loop(2000, this.spawnBadger, this, [x, y]);
-					enter_timer.start();
-					this.spawnLoop = enter_timer;
+					this.entrance_x = j * 75 + 535;
+					this.entrance_y = i * 75;
 					break;
 				case('6'):
 					let exit_blue = this.exits.create(j * 75 + 535, i * 75, "blue exit");
