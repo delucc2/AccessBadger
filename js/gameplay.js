@@ -165,7 +165,6 @@ gameplayState.prototype.buildObject = function() {
 				}
 				this.wallButton.text.text = "Wall: " + (this.object_caps[0] - this.counts[0]);
 				let wall = this.walls.create(this.cursor_x, this.cursor_y, "wall");
-				wall.scale.setTo(1.875,1.875);
 				wall.body.immovable = true;
 				wall.inputEnabled = true;
 				wall.events.onInputOver.add(this.disallowPlacement, this);
@@ -176,7 +175,6 @@ gameplayState.prototype.buildObject = function() {
 			case "gate":
 				let gate = this.gates.create(this.cursor_x, this.cursor_y, "green gate");
 				gate.body.immovable = true;
-				gate.scale.setTo(1.875,1.875);
 				gate.type = this.type;
 				gate.inputEnabled = true;
 				gate.events.onInputOver.add(this.disallowPlacement, this);
