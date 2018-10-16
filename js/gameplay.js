@@ -8,23 +8,33 @@ let gameplayState = function(){
 	this.score = 0;
 	this.counts = [0, 0, 0]; // Number of objects placed - [walls, switches, traps]
 	this.object_caps = [0, 0, 0]; // Caps for number of objects placed - [walls, switches, traps]
+	this.badger_types = ["blue", "red", "yellow", "honeybadger"];
+	this.badger_nums = [0, 0, 0, 0];
+	this.prev_x = -1;
+	this.prev_y = -1;
 	this.isSpeechBubbleActive = false;
 	this.speechBubbleActiveTime = 5000;
 	this.speechBubbleStartTime = 0;
+	this.entrance_x;
+	this.entrance_y;
+	this.started = false;
 };
 
 gameplayState.prototype.create = function(){
-    game.physics.startSystem(Phaser.Physics.ARCADE);
+  game.physics.startSystem(Phaser.Physics.ARCADE);
 
 	//audio
-	this.music = game.add.audio('music_1');
+	/*this.music = game.add.audio('music_1');
 	this.music.loop = true;
-    this.music.play();
+    this.music.play();*/
 
 	this.startTime = this.game.time.time;
 	this.time = this.game.time.time;
 	this.blueBadgersLeft = 0;
 	this.graphics = game.add.graphics(0,0);
+
+	// Floor Group
+	this.floor = game.add.group();
 
 	// Wall group
 	this.walls = game.add.group();
@@ -45,7 +55,15 @@ gameplayState.prototype.create = function(){
 	// Trap Group
 	this.traps = game.add.group();
 	this.traps.enableBody = true;
-	this.object_caps = [5,5,5];
+
+	// Spawn Points
+	this.entrances = game.add.group();
+
+	// Exit Points
+	this.exits = game.add.group();
+	this.exits.enableBody = true;
+
+	this.loadLevel();
 	this.setupUI();
 
 
@@ -57,19 +75,20 @@ gameplayState.prototype.create = function(){
 		}
 	}
 
+	this.object_caps = [5,5,5];
+	this.badger_nums = [2, 2, 2, 2];
 	this.speechBubble = this.makeQuip(20, 500, "Hi, I'm an Access Badger");
 	this.isSpeechBubbleActive = true;
 	this.speechBubbleStartTime = game.time.time;
-
-	
 
 	game.input.activePointer.leftButton.onDown.add(this.buildObject, this);
 };
 
 gameplayState.prototype.update = function(){
-
 	let mouse = game.input.activePointer;
 	this.cursors = game.input.keyboard.createCursorKeys();
+	let one = game.input.keyboard.addKey(Phaser.Keyboard.ONE);
+	let two = game.input.keyboard.addKey(Phaser.Keyboard.TWO);
 
 	this.graphics.clear(); // Clears all grid boxes
 	//Sets ui zone
@@ -98,21 +117,30 @@ gameplayState.prototype.update = function(){
 	this.updateSpeechBubble();
 
 	// For debug, controls for placing badgers and switches
-	if (this.cursors.right.isDown) {
-		this.selection = "badger";
-		this.type = "blue";
-	}
-
-	if (this.cursors.down.isDown) {
-		this.selection = "switch";
-	}
-
-	if (this.cursors.up.isDown) {
-		this.selection = "trap";
+	if (this.cursors.right.isDown && !this.started) {
+		this.startSpawning();
+		this.started = true;
 	}
 
 	if (this.cursors.left.isDown) {
 		this.selection = "delete";
+	}
+
+	if (this.cursors.down.isDown) {
+		this.people.callAll("kill");
+		this.spawnLoop.stop();
+		this.floor.callAll("kill");
+		this.walls.callAll("kill");
+		this.gates.callAll("kill");
+		this.switches.callAll("kill");
+		this.traps.callAll("kill");
+		this.entrances.callAll("kill");
+		this.exits.callAll("kill");
+
+		this.loadLevel();
+		this.object_caps = [5,5,5];
+		this.badger_nums = [2, 2, 2, 2];
+		this.started = false;
 	}
 
 	// Collisions
@@ -120,47 +148,29 @@ gameplayState.prototype.update = function(){
 	game.physics.arcade.collide(this.people, this.gates, this.turn, this.access, this);
 	game.physics.arcade.overlap(this.people, this.switches, this.switchTurn, this.isCenter, this);
 	game.physics.arcade.overlap(this.people, this.traps, this.trapped, this.isCenter, this);
+	game.physics.arcade.overlap(this.people, this.exits, this.exit, this.isCenter, this);
 };
 
 // Builds whatever is selected on a grid location
 gameplayState.prototype.buildObject = function() {
-	
-	if (this.cursor_x !== -1 && this.canPlace) {
-		if (this.selection !== "") { this.canPlace = false; }
+	if (this.cursor_x !== -1 && this.canPlace && (this.cursor_x !== this.prev_x || this.cursor_y !== this.prev_y) && this.selection !== "") {
+		this.prev_x = this.cursor_x;
+		this.prev_y = this.cursor_y;
 		switch(this.selection) {
 			case "wall":
 			  this.counts[0]++;
 				if (this.counts[0] > this.object_caps[0]) {
 					this.counts[0]--;
-
 					break;
 				}
 				this.wallButton.text.text = "Wall: " + (this.object_caps[0] - this.counts[0]);
 				let wall = this.walls.create(this.cursor_x, this.cursor_y, "wall");
-				wall.scale.setTo(1.875,1.875);
 				wall.body.immovable = true;
 				wall.inputEnabled = true;
 				wall.events.onInputOver.add(this.disallowPlacement, this);
 				wall.events.onInputOut.add(this.allowPlacement, this);
 				wall.events.onInputDown.add(this.delete, this);
 				this.index = 0;
-				break;
-			case "gate":
-				let gate = this.gates.create(this.cursor_x, this.cursor_y, "gate");
-				gate.body.immovable = true;
-				gate.scale.setTo(1.875,1.875);
-				gate.type = this.type;
-				gate.inputEnabled = true;
-				gate.events.onInputOver.add(this.disallowPlacement, this);
-				gate.events.onInputOut.add(this.allowPlacement, this);
-				break;
-			case "badger":
-				let badger = this.people.create(this.cursor_x, this.cursor_y, "badger");
-				badger.type = this.type;
-				badger.body.velocity.y = 75;
-				badger.inputEnabled = true;
-				badger.events.onInputOver.add(this.disallowPlacement, this);
-				badger.events.onInputOut.add(this.allowPlacement, this);
 				break;
 			case "switch":
 				this.counts[1]++;
@@ -193,6 +203,7 @@ gameplayState.prototype.buildObject = function() {
 				trap.events.onInputOut.add(this.allowPlacement, this);
 				trap.events.onInputDown.add(this.delete, this);
 				this.index = 2;
+				break;
 		}
 	}
 };
@@ -252,6 +263,7 @@ gameplayState.prototype.turn = function(badger, wall) {
 		badger.body.velocity.y = 75;
 		badger.body.velocity.x = 0;
 	}
+	badger.angle -= 90;
 };
 
 gameplayState.prototype.destroyIntercom = function(){
@@ -259,12 +271,13 @@ gameplayState.prototype.destroyIntercom = function(){
 };
 // Checks if badger can pass through gate
 gameplayState.prototype.access = function(badger, gate) {
-  if (badger.type !== gate.type) {
-    return true;
+  if (gate.type.includes(badger.type) || badger.type === 'honeybadger') {
+    return false;
+		badger.passed = true;
   } else {
-		return false;
+		return true;
 	}
-}
+};
 
 gameplayState.prototype.destroyTalk = function(){
 	this.talkBubble.kill();
@@ -285,7 +298,7 @@ gameplayState.prototype.switchTurn = function(badger, arrow) {
 		badger.body.velocity.x = 0;
 		badger.body.velocity.y = 75;
 	}
-}
+};
 
 gameplayState.prototype.updateSpeechBubble = function(){
 	if(this.isSpeechBubbleActive){
@@ -306,7 +319,7 @@ gameplayState.prototype.isCenter = function(object1, object2) {
 		return true;
 	}
 	return false;
-}
+};
 
 // Turns the switch
 gameplayState.prototype.changeSwitch = function(arrow) {
@@ -321,15 +334,16 @@ gameplayState.prototype.changeSwitch = function(arrow) {
 			arrow.pointing += 1;
 		}
 	}
-}
+};
 
 // Forbids items to be place on top of one another
 gameplayState.prototype.disallowPlacement = function(x) {
 	this.canPlace = false;
-}
+};
+
 gameplayState.prototype.allowPlacement = function(x) {
 	this.canPlace = true;
-}
+};
 
 // If badger passes over trap, kill it and change score
 gameplayState.prototype.trapped = function(badger, trap) {
@@ -338,11 +352,143 @@ gameplayState.prototype.trapped = function(badger, trap) {
 		this.score -= 1;
 	}
 	badger.kill();
-}
+};
 
 gameplayState.prototype.delete = function(object) {
 	if (this.selection === "delete") {
 		this.counts[this.index]--;
 		object.kill();
 	}
+};
+
+gameplayState.prototype.spawnBadger = function(args) {
+	let x = args[0];
+	let y = args[1];
+	let is_valid = true;
+	let badger_type = -1;
+	for (let i = 0; i < this.badger_nums.length; i++) {
+		if (this.badger_nums[i] !== 0) {
+			is_valid = false;
+		}
+	}
+	if (is_valid) {
+		this.spawnLoop.stop();
+	}
+	while (!is_valid) {
+		badger_index = game.rnd.integerInRange(0, 3);
+		if (this.badger_nums[badger_index] !== 0) {
+			is_valid = true;
+		}
+	}
+	if (badger_index !== -1) {
+		let badger_type = this.badger_types[badger_index];
+		let badger = this.people.create(x + 37.5, y + 37.5, badger_type);
+		badger.body.velocity.y = 75;
+		badger.type = badger_type;
+		badger.passed = false;
+		this.badger_nums[badger_index]--;
+		badger.animations.add("walk", [0,1,0,2], 6, true);
+		badger.animations.play("walk");
+		badger.anchor.setTo(0.5, 0.5);
+		badger.angle += 180;
+	}
 }
+
+gameplayState.prototype.startSpawning = function() {
+	let enter_timer = game.time.create(false);
+	enter_timer.loop(2000, this.spawnBadger, this, [this.entrance_x, this.entrance_y]);
+	enter_timer.start();
+	this.spawnLoop = enter_timer;
+}
+
+gameplayState.prototype.loadLevel = function(){
+	let data = game.cache.getText('level1');
+	this.generateLevelFromFile(data);
+};
+
+gameplayState.prototype.exit = function(badger, exit) {
+	if (badger.type === exit.type && badger.passed) {
+		this.score += 1;
+	}
+	console.log(this.score);
+	badger.kill();
+}
+
+gameplayState.prototype.restart = function() {
+	this.people.callAll("kill");
+	this.floor.callAll("kill");
+	this.walls.callAll("kill");
+	this.gates.callAll("kill");
+	this.switches.callAll("kill");
+	this.traps.callAll("kill");
+	this.entrances.callAll("kill");
+	this.exits.callAll("kill");
+
+	this.spawnLoop.stop();
+	this.loadLevel();
+	this.object_caps = [5,5,5];
+	this.badger_nums = [2, 2, 2, 2];
+	this.started = false;
+}
+
+gameplayState.prototype.generateLevelFromFile = function(text){
+	let textData = text.split('\n');
+	for(let i = 0; i < textData.length; i++){
+		let textLine = textData[i].split('');
+		for(let j = 0; j < textLine.length; j++){
+			switch(textLine[j]){
+			//	x * 75 + 535
+				case('0'):
+					this.floor.create(j * 75 + 535, i * 75, "floor");
+					break;
+				case('1'):
+					let wall = this.walls.create(j * 75 + 535, i * 75, "wall");
+					wall.body.immovable = true;
+
+					break;
+				case('2'):
+					let gate = this.gates.create(j * 75 + 535, i * 75, "purple gate");
+					gate.body.immovable = true;
+					gate.type = ["blue", "red"];
+					break;
+				case('3'):
+					let gate1 = this.gates.create(j * 75 + 535, i * 75, "green gate");
+					gate1.body.immovable = true;
+					gate1.type = ["blue", "yellow"];
+					break;
+				case('4'):
+					let gate2 = this.gates.create(j * 75 + 535, i * 75, "orange gate");
+					gate2.body.immovable = true;
+					gate2.type = ["red", "yellow"];
+					break;
+				case('5'):
+					let entrance = this.entrances.create(j * 75 + 535, i * 75, "start");
+					entrance.events.onInputOver.add(this.disallowPlacement, this);
+					entrance.events.onInputOut.add(this.allowPlacement, this);
+					this.entrance_x = j * 75 + 535;
+					this.entrance_y = i * 75;
+					break;
+				case('6'):
+					let exit_blue = this.exits.create(j * 75 + 535, i * 75, "blue exit");
+					exit_blue.type = "blue";
+					exit_blue.events.onInputOver.add(this.disallowPlacement, this);
+					exit_blue.events.onInputOut.add(this.allowPlacement, this);
+					break;
+				case('7'):
+					let exit_red = this.exits.create(j * 75 + 535, i * 75, "red exit");
+					exit_red.type = "red";
+					exit_red.events.onInputOver.add(this.disallowPlacement, this);
+					exit_red.events.onInputOut.add(this.allowPlacement, this);
+					break;
+				case('8'):
+					let exit_yellow = this.exits.create(j * 75 + 535, i * 75, "yellow exit");
+					exit_yellow.type = "yellow";
+					exit_yellow.events.onInputOver.add(this.disallowPlacement, this);
+					exit_yellow.events.onInputOut.add(this.allowPlacement, this);
+					break;
+				default:
+					break;
+			}
+		}
+	}
+};
