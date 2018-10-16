@@ -75,8 +75,8 @@ gameplayState.prototype.create = function(){
 		}
 	}
 
-	this.object_caps = [5,5,5];
-	this.badger_nums = [2, 2, 2, 2];
+	// this.object_caps = [5,5,5];
+	// this.badger_nums = [2, 2, 2, 2];
 	this.speechBubble = this.makeQuip(20, 500, "Hi, I'm an Access Badger");
 	this.isSpeechBubbleActive = true;
 	this.speechBubbleStartTime = game.time.time;
@@ -433,7 +433,7 @@ gameplayState.prototype.restart = function() {
 
 gameplayState.prototype.generateLevelFromFile = function(text){
 	let textData = text.split('\n');
-	for(let i = 0; i < textData.length; i++){
+	for(let i = 0; i < 15; i++){
 		let textLine = textData[i].split('');
 		for(let j = 0; j < textLine.length; j++){
 			switch(textLine[j]){
@@ -491,4 +491,6 @@ gameplayState.prototype.generateLevelFromFile = function(text){
 			}
 		}
 	}
+	this.object_caps = [parseInt(textData[15]), parseInt(textData[16]), parseInt(textData[17])];
+	this.badger_nums = [parseInt(textData[18]), parseInt(textData[19]), parseInt(textData[20]), parseInt(textData[21])];
 };
