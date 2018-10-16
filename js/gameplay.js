@@ -17,7 +17,9 @@ let gameplayState = function(){
 	this.speechBubbleStartTime = 0;
 	this.entrance_x;
 	this.entrance_y;
+	this.buildPhase = true;
 	this.started = false;
+	this.level = 1;
 };
 
 gameplayState.prototype.create = function(){
@@ -63,9 +65,8 @@ gameplayState.prototype.create = function(){
 	this.people = game.add.group();
 	this.people.enableBody = true;
 
-	this.loadLevel();
+	this.loadLevel(this.level);
 	this.setupUI();
-
 
 	// Draws Grid
 	this.grid = [];
@@ -117,9 +118,9 @@ gameplayState.prototype.update = function(){
 	this.updateSpeechBubble();
 
 	// For debug, controls for placing badgers and switches
-	if (this.cursors.right.isDown && !this.started) {
+	if (this.cursors.right.isDown && this.buildPhase) {
 		this.startSpawning();
-		this.started = true;
+		this.buildPhase = false;
 	}
 
 	if (this.cursors.left.isDown) {
@@ -127,6 +128,11 @@ gameplayState.prototype.update = function(){
 	}
 
 	if (this.cursors.down.isDown) {
+		this.restart();
+	}
+
+	if (this.people.countLiving() === 0 && this.started) {
+		this.level++;
 		this.restart();
 	}
 
@@ -140,7 +146,7 @@ gameplayState.prototype.update = function(){
 
 // Builds whatever is selected on a grid location
 gameplayState.prototype.buildObject = function() {
-	if (this.cursor_x !== -1 && this.canPlace && (this.cursor_x !== this.prev_x || this.cursor_y !== this.prev_y) && this.selection !== "" && !this.started) {
+	if (this.cursor_x !== -1 && this.canPlace && (this.cursor_x !== this.prev_x || this.cursor_y !== this.prev_y) && this.selection !== "" && this.buildPhase) {
 		this.prev_x = this.cursor_x;
 		this.prev_y = this.cursor_y;
 		switch(this.selection) {
@@ -390,6 +396,7 @@ gameplayState.prototype.spawnBadger = function(args) {
 	if (badger_index !== -1) {
 		let badger_type = this.badger_types[badger_index];
 		let badger = this.people.create(x + 37.5, y + 37.5, badger_type);
+		this.started = true;
 		badger.body.velocity.y = 75;
 		badger.type = badger_type;
 		badger.passed = false;
@@ -408,8 +415,9 @@ gameplayState.prototype.startSpawning = function() {
 	this.spawnLoop = enter_timer;
 }
 
-gameplayState.prototype.loadLevel = function(){
-	let data = game.cache.getText('level1');
+gameplayState.prototype.loadLevel = function(x){
+	let file = 'level' + x;
+	let data = game.cache.getText(file);
 	this.generateLevelFromFile(data);
 };
 
@@ -432,10 +440,9 @@ gameplayState.prototype.restart = function() {
 	this.exits.callAll("kill");
 
 	if (this.spawnLoop != null) { this.spawnLoop.stop(); }
-	this.loadLevel();
+	this.loadLevel(this.level);
 	this.counts = [0, 0, 0];
-	this.object_caps = [5,5,5];
-	this.badger_nums = [2, 2, 2, 2];
+	this.buildPhase = true;
 	this.started = false;
 	this.score = 0;
 }

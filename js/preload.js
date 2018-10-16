@@ -28,6 +28,7 @@ preloadState.prototype.preload = function(){
 	game.load.image("red exit", "assets/red_exit.png");
 	game.load.image("yellow exit", "assets/yellow_exit.png");
 	game.load.text("level1", "levels/level1.txt");
+	game.load.text("level2", "levels/level2.txt");
 	game.load.image("intercom_button_sheet", "assets/intercom_bubble.png");
 	game.load.image("talk_button_sheet", "assets/talk_bubble.png");
 	game.load.image("speech_bubble", "assets/speech_bubble.png");
