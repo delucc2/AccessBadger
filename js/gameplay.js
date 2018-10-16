@@ -31,6 +31,8 @@ gameplayState.prototype.create = function(){
 	this.startTime = this.game.time.time;
 	this.time = this.game.time.time;
 	this.blueBadgersLeft = 0;
+	this.redBadgersLeft = 0;
+	this.yellowBadgersLeft = 0;
 	this.graphics = game.add.graphics(0,0);
 
 	// Floor Group
@@ -213,10 +215,15 @@ gameplayState.prototype.setupUI = function(){
 	this.graphics.drawRect(0, 0, 513, 1125);
 	this.graphics.endFill();
 	this.timeText = game.add.text(10, 10, "Time: 0", {fontSize: '32px', fill: '#000'});
-	this.switchButton = this.createButton(0, 200, "Switch", "switch_ui", "blue", this.setSelectionSwitch);
-	this.wallButton = this.createButton(0, 60, "Wall", "wall_ui", "red", this.setSelectionWall);
+	this.switchButton = this.createButton(0, 200, "Switch", "switch", "blue", this.setSelectionSwitch);
+	this.wallButton = this.createButton(0, 60, "Wall", "wall", "red", this.setSelectionWall);
 	this.trapButton = this.createButton(0, 340, "Trap", "trap_ui", "yellow", this.setSelectionTrap);
-	this.blueBadgersLeftText = game.add.text(10, 480, "Blue Badgers Left: 0", {fontSize: '32px', fill: '#000'});
+	this.pauseButton = this.createButton(0, 480, "Pause", "", "orange", this.pauseGame);
+	this.deleteButton = this.createButton(170, 480, "Delete", "", "orange", this.setDelete);
+	this.startButton = this.createButton(340, 480, "Start", "", "orange", this.startGame);
+	this.blueBadgersLeftText = game.add.text(10, 610, "Blue Badgers Left: 0", {fontSize: '32px', fill: '#000'});
+	this.redBadgersLeftText = game.add.text(10, 650, "Red Badgers Left: 0", {fontSize: '32px', fill: '#000'});
+	this.yellowBadgersLeftText = game.add.text(10, 690, "Yellow Badgers Left: 0", {fontSize: '32px', fill: '#000'});
 	this.talkBubble = this.createButton(350, 300, "THIS IS TEXT FROM AXX", "", "talk", this.destroyTalk, 100, 180);
 	this.intercom = this.createButton(350, 800, "THIS IS TEXT FROM THE COYOTE", "", "intercom", this.destroyIntercom, 30, 180);
 
@@ -234,6 +241,16 @@ gameplayState.prototype.updateTime = function(){
 gameplayState.prototype.decreaseBlueBadgersLeft = function(){
 	this.blueBadgersLeft--;
 	this.blueBadgersLeftText.text = "Blue Badgers Left: " + this.blueBadgersLeft;
+};
+
+gameplayState.prototype.decreaseRedBadgersLeft = function(){
+	this.redBadgersLeft--;
+	this.redBadgersLeftText.text = "Red Badgers Left: " + this.redBadgersLeft;
+};
+
+gameplayState.prototype.decreaseBlueBadgersLeft = function(){
+	this.yellowBadgersLeft--;
+	this.yellowBadgersLeftText.text = "Yellow Badgers Left: " + this.yellowBadgersLeft;
 };
 
 gameplayState.prototype.setSelectionWall = function(){
@@ -395,10 +412,12 @@ gameplayState.prototype.spawnBadger = function(args) {
 }
 
 gameplayState.prototype.startSpawning = function() {
-	let enter_timer = game.time.create(false);
-	enter_timer.loop(2000, this.spawnBadger, this, [this.entrance_x, this.entrance_y]);
-	enter_timer.start();
-	this.spawnLoop = enter_timer;
+	if(!this.started){
+		let enter_timer = game.time.create(false);
+		enter_timer.loop(2000, this.spawnBadger, this, [this.entrance_x, this.entrance_y]);
+		enter_timer.start();
+		this.spawnLoop = enter_timer;
+	}
 }
 
 gameplayState.prototype.loadLevel = function(){
@@ -491,4 +510,19 @@ gameplayState.prototype.generateLevelFromFile = function(text){
 			}
 		}
 	}
+};
+
+
+gameplayState.prototype.pauseGame = function(){
+	game.paused = !game.paused;
+};
+
+
+gameplayState.prototype.startGame = function(){
+	this.startSpawning();
+	this.started = true;
+};
+
+gameplayState.prototype.setDelete = function(){
+	this.selection = "delete";
 };
