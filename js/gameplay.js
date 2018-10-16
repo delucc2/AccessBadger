@@ -13,8 +13,8 @@ let gameplayState = function(){
 	this.prev_x = -1;
 	this.prev_y = -1;
 	this.isSpeechBubbleActive = false;
-	this.speechBubbleActiveTime = 5000;
-	this.speechBubbleStartTime = 0;
+	// this.speechBubbleActiveTime = 5000;
+	// this.speechBubbleStartTime = 0;
 	this.entrance_x;
 	this.entrance_y;
 	this.started = false;
@@ -28,8 +28,7 @@ gameplayState.prototype.create = function(){
 	this.music.loop = true;
     this.music.play();*/
 
-	this.startTime = this.game.time.time;
-	this.time = this.game.time.time;
+	
 	this.blueBadgersLeft = 0;
 	this.graphics = game.add.graphics(0,0);
 
@@ -77,9 +76,9 @@ gameplayState.prototype.create = function(){
 
 	// this.object_caps = [5,5,5];
 	// this.badger_nums = [2, 2, 2, 2];
-	this.speechBubble = this.makeQuip(20, 500, "Hi, I'm an Access Badger");
-	this.isSpeechBubbleActive = true;
-	this.speechBubbleStartTime = game.time.time;
+	// this.speechBubble = this.makeQuip(20, 500, "Hi, I'm an Access Badger");
+	// this.isSpeechBubbleActive = true;
+	// this.speechBubbleStartTime = game.time.time;
 
 	game.input.activePointer.leftButton.onDown.add(this.buildObject, this);
 };
@@ -96,7 +95,7 @@ gameplayState.prototype.update = function(){
 	this.graphics.drawRect(0, 0, 513, 1125);
 	this.graphics.endFill();
 
-	this.updateTime();
+	
 	// If the cursor is in a box, highlight as red
 	for (let i = 0; i < this.grid.length; i++) {
 		if (this.grid[i].contains(game.input.x, game.input.y)) {
@@ -114,7 +113,7 @@ gameplayState.prototype.update = function(){
 		this.cursor_x = -1;
 		this.cursor_y = -1;
 	}
-	this.updateSpeechBubble();
+	//this.updateSpeechBubble();
 
 	// For debug, controls for placing badgers and switches
 	if (this.cursors.right.isDown && !this.started) {
@@ -212,7 +211,7 @@ gameplayState.prototype.setupUI = function(){
 	this.graphics.beginFill(0xA5CBD2);
 	this.graphics.drawRect(0, 0, 513, 1125);
 	this.graphics.endFill();
-	this.timeText = game.add.text(10, 10, "Time: 0", {fontSize: '32px', fill: '#000'});
+	
 	this.switchButton = this.createButton(0, 200, "Switch", "switch_ui", "blue", this.setSelectionSwitch);
 	this.wallButton = this.createButton(0, 60, "Wall", "wall_ui", "red", this.setSelectionWall);
 	this.trapButton = this.createButton(0, 340, "Trap", "trap_ui", "yellow", this.setSelectionTrap);
@@ -226,10 +225,6 @@ gameplayState.prototype.setupUI = function(){
 	this.trapButton.text.text = "Trap: " + this.object_caps[2];
 };
 
-gameplayState.prototype.updateTime = function(){
-	this.time = this.game.time.time;
-	this.timeText.text = "Time: " + (Math.floor((this.time - this.startTime) / 1000));
-};
 
 gameplayState.prototype.decreaseBlueBadgersLeft = function(){
 	this.blueBadgersLeft--;
