@@ -302,7 +302,7 @@ gameplayState.prototype.access = function(badger, gate) {
 					badger.animations.play("walk");
 					break;
 			}
-			this.correct.play();
+			if (badger.type !== "honeybadger") { this.correct.play(); }
 		}
 		badger.passed = true;
     return false;

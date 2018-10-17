@@ -20,6 +20,7 @@ preloadState.prototype.preload = function(){
 	game.load.spritesheet("red jacket", "assets/images/BadgerRedWalk_Coat.png", 75, 75);
 	game.load.spritesheet("yellow", "assets/images/BadgerYellowWalk.png", 75, 75);
 	game.load.spritesheet("yellow jacket", "assets/images/BadgerYellowWalk_Coat.png", 75, 75);
+	game.load.spritesheet("honeybadger", "assets/images/HoneyBadger_Sheet.png", 75, 75);
 
 	game.load.image("switch", "assets/images/switch.png");
 	game.load.image("trap", "assets/images/trap.png");
