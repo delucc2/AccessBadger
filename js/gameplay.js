@@ -327,22 +327,27 @@ gameplayState.prototype.destroyTalk = function(){
 // Turns badger according to switch direction
 gameplayState.prototype.switchTurn = function(badger, arrow) {
 	let direction = this.directions[arrow.pointing];
-	if (direction === 'right') {
-		badger.body.velocity.x = 75;
-		badger.body.velocity.y = 0;
-		badger.angle = 90;
-	} else if (direction === 'left') {
-		badger.body.velocity.x = -75;
-		badger.body.velocity.y = 0;
-		badger.angle = 270;
-	} else if (direction === 'up') {
-		badger.body.velocity.x = 0;
-		badger.body.velocity.y = -75;
-		badger.angle = 0;
-	} else if (direction === 'down') {
-		badger.body.velocity.x = 0;
-		badger.body.velocity.y = 75;
-		badger.angle = 180;
+	if (badger.type !== "honeybadger") {
+		if (direction === 'right') {
+			badger.body.velocity.x = 75;
+			badger.body.velocity.y = 0;
+			badger.angle = 90;
+		} else if (direction === 'left') {
+			badger.body.velocity.x = -75;
+			badger.body.velocity.y = 0;
+			badger.angle = 270;
+		} else if (direction === 'up') {
+			badger.body.velocity.x = 0;
+			badger.body.velocity.y = -75;
+			badger.angle = 0;
+		} else if (direction === 'down') {
+			badger.body.velocity.x = 0;
+			badger.body.velocity.y = 75;
+			badger.angle = 180;
+		}
+	} else {
+		console.log("x", badger.body.velocity.x);
+		console.log("y", badger.body.velocity.y);
 	}
 };
 
@@ -359,7 +364,7 @@ gameplayState.prototype.updateSpeechBubble = function(){
 gameplayState.prototype.isCenter = function(object1, object2) {
 	let dif_x = Phaser.Math.difference(object1.centerX, object2.centerX);
 	let dif_y = Phaser.Math.difference(object1.centerY, object2.centerY);
-	if (dif_x <= 2 && dif_y <= 2) {
+	if (dif_x <= 2 && dif_y <= 2 && object1.type !== "honeybadger") {
 		object1.body.velocity.x = 0;
 		object1.body.velocity.y = 0;
 		return true;
@@ -558,6 +563,38 @@ gameplayState.prototype.generateLevelFromFile = function(text){
 					exit_yellow.events.onInputOver.add(this.disallowPlacement, this);
 					exit_yellow.events.onInputOut.add(this.allowPlacement, this);
 					break;
+				case('a'):
+					let gate3 = this.gates.create(j * 75 + 572.5, i * 75 + 37.5, "orange gate");
+					gate3.body.immovable = true;
+					gate3.type = ["red", "yellow"];
+					gate3.direction = "vertical";
+					gate3.inputEnabled = true;
+					gate3.events.onInputDown.add(this.changeSwitch, this);
+					gate3.events.onInputOver.add(this.disallowPlacement, this);
+					gate3.anchor.setTo(0.5, 0.5);
+					gate3.angle += 90;
+					break;
+				case('b'):
+					let gate4 = this.gates.create(j * 75 + 572.5, i * 75 + 37.5, "purple gate");
+					gate4.body.immovable = true;
+					gate4.type = ["red", "blue"];
+					gate4.direction = "vertical";
+					gate4.inputEnabled = true;
+					gate4.events.onInputDown.add(this.changeSwitch, this);
+					gate4.events.onInputOver.add(this.disallowPlacement, this);
+					gate4.anchor.setTo(0.5, 0.5);
+					gate4.angle += 90;
+					break;
+				case('c'):
+				let gate5 = this.gates.create(j * 75 + 572.5, i * 75 + 37.5, "green gate");
+					gate5.body.immovable = true;
+					gate5.type = ["blue", "yellow"];
+					gate5.direction = "vertical";
+					gate5.inputEnabled = true;
+					gate5.events.onInputDown.add(this.changeSwitch, this);
+					gate5.events.onInputOver.add(this.disallowPlacement, this);
+					gate5.anchor.setTo(0.5, 0.5);
+					gate5.angle += 90;
 				default:
 					break;
 			}
