@@ -48,6 +48,8 @@ preloadState.prototype.preload = function(){
 	game.load.spritesheet("axx blink animation", "assets/images/AxxBlinkAnimation.png", 500, 300);
 
 	game.load.text("level1Text", "assets/writing/level_1.txt");
+	game.load.text("level2Text", "assets/writing/level_2.txt");
+	game.load.text("level3Text", "assets/writing/level_3.txt");
 
 	game.load.image("intercom_button_sheet", "assets/intercom_bubble.png");
 	game.load.image("talk_button_sheet", "assets/talk_bubble.png");
