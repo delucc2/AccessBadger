@@ -1,24 +1,24 @@
 let gameplayState = function(){
-	this.selection = "";
-	this.type = "";
-	this.cursor_x = 0;
-	this.cursor_y = 0;
+	this.selection = ""; // Object to be placed
+	this.type = ""; // Object's color
+	this.cursor_x = 0; // x value of object to be placed
+	this.cursor_y = 0; // y value of object to be placed
 	this.directions = ["right", "down", "left", "up"];
-	this.canPlace = true;
-	this.score = 0;
+	this.canPlace = true; // If true, player can place an object
+	this.score = 0; // Keeps track of player's score
 	this.counts = [0, 0, 0]; // Number of objects placed - [walls, switches, traps]
 	this.object_caps = [0, 0, 0]; // Caps for number of objects placed - [walls, switches, traps]
 	this.badger_types = ["blue", "red", "yellow", "honeybadger"];
-	this.badger_nums = [0, 0, 0, 0];
-	this.prev_x = -1;
-	this.prev_y = -1;
+	this.badger_nums = [0, 0, 0, 0]; // Keeps track of # of badgers spawned
+	this.prev_x = -1; // x value of last object placed
+	this.prev_y = -1; // y value of last object placed
 	this.isSpeechBubbleActive = false;
 	this.badger_threshold = 7;
-	this.entrance_x;
-	this.entrance_y;
-	this.buildPhase = true;
-	this.started = false;
-	this.level = 1;
+	this.entrance_x; // x value of level's entrance
+	this.entrance_y; // y value of level's entrance
+	this.buildPhase = true; // If true, is in build phase
+	this.started = false; // If true, the first badger has spawned
+	this.level = 1; // Current level
 	this.animations = ["axx ear animation", "axx drink animation", "axx blink animation"];
 };
 
@@ -65,6 +65,10 @@ gameplayState.prototype.create = function(){
 	this.people = game.add.group();
 	this.people.enableBody = true;
 
+	// Items part of dialogue box to continue to next level
+	this.transition_box = game.add.group();
+
+	// Loads in level elements/data
 	this.loadLevel(this.level);
 
 	this.blueBadgersLeft = this.badger_nums[0];
@@ -82,8 +86,10 @@ gameplayState.prototype.create = function(){
 		}
 	}
 
+	// Builds object on mouse click (tap)
 	game.input.activePointer.leftButton.onDown.add(this.buildObject, this);
 
+	// Loads SFX
 	this.correct = game.add.audio("correct");
 	this.correct_exit = game.add.audio("correct exit");
 	this.trap = game.add.audio("trap sfx");
@@ -92,9 +98,6 @@ gameplayState.prototype.create = function(){
 
 gameplayState.prototype.update = function(){
 	let mouse = game.input.activePointer;
-	this.cursors = game.input.keyboard.createCursorKeys();
-	let one = game.input.keyboard.addKey(Phaser.Keyboard.ONE);
-	let two = game.input.keyboard.addKey(Phaser.Keyboard.TWO);
 
 	this.graphics.clear(); // Clears all grid boxes
 	//Sets ui zone
@@ -106,9 +109,6 @@ gameplayState.prototype.update = function(){
 	for (let i = 0; i < this.grid.length; i++) {
 		if (this.grid[i].contains(game.input.x, game.input.y)) {
 			let box = this.grid[i];
-			this.graphics.beginFill(0xFF3300);
-			this.graphics.drawRect(box.x, box.y, box.width, box.height);
-			this.graphics.endFill();
 			this.cursor_x = box.x;
 			this.cursor_y = box.y;
 		}
@@ -120,9 +120,11 @@ gameplayState.prototype.update = function(){
 		this.cursor_y = -1;
 	}
 
+	// After all badgers are spawned + leave, if player has passing score,
+	// display dialogue box to take player to the next level
 	if (this.people.countLiving() === 0 && this.started && this.score >= 7) {
-		this.level++;
-		this.restart();
+		this.started = false;
+		this.congratsBox();
 	}
 
 	// Collisions
@@ -135,9 +137,13 @@ gameplayState.prototype.update = function(){
 
 // Builds whatever is selected on a grid location
 gameplayState.prototype.buildObject = function() {
+	// Checks that cursor is not in the UI portion, floating over previously placed
+	// object, has a valid selection, and player is in the build phase
 	if (this.cursor_x !== -1 && this.canPlace && (this.cursor_x !== this.prev_x || this.cursor_y !== this.prev_y) && this.selection !== "" && this.buildPhase) {
 		this.prev_x = this.cursor_x;
 		this.prev_y = this.cursor_y;
+		// Builds proper object according to this.selection, adding proper events,
+		// and tracking built objects
 		switch(this.selection) {
 			case "wall":
 			  this.counts[0]++;
@@ -145,7 +151,6 @@ gameplayState.prototype.buildObject = function() {
 					this.counts[0]--;
 					break;
 				}
-				
 				let wall = this.walls.create(this.cursor_x, this.cursor_y, "wall");
 				wall.body.immovable = true;
 				wall.inputEnabled = true;
@@ -160,7 +165,6 @@ gameplayState.prototype.buildObject = function() {
 					this.counts[1]--;
 					break;
 				}
-				
 				let arrow = this.switches.create(this.cursor_x + 37.5, this.cursor_y + 37.5, "switch");
 				arrow.pointing = 0;
 				arrow.body.immovable = true;
@@ -170,7 +174,6 @@ gameplayState.prototype.buildObject = function() {
 				arrow.events.onInputOver.add(this.disallowPlacement, this);
 				arrow.events.onInputOut.add(this.allowPlacement, this);
 				arrow.anchor.setTo(0.5, 0.5);
-				
 				break;
 			case "trap":
 				this.counts[2]++;
@@ -178,7 +181,7 @@ gameplayState.prototype.buildObject = function() {
 					this.counts[2]--;
 					break;
 				}
-				
+
 				let trap = this.traps.create(this.cursor_x, this.cursor_y, "trap");
 				trap.body.immovable = true;
 				trap.inputEnabled = true;
@@ -212,7 +215,9 @@ gameplayState.prototype.setupUI = function(){
 	this.uiGroup.add(this.deleteButton);
 	this.uiGroup.add(this.startButton);
 
-	this.axx = game.add.sprite(10, 740, "axx drink animation");
+	this.axx = game.add.sprite(0, 675, "axx drink animation");
+	this.axx.scale.setTo(1.5, 1.5);
+	this.axx.crop(new Phaser.Rectangle(75, 0, 340, 300));
 	this.axx.animations.add("sip", [0,1,2,3,4,5,6,7,8,9,10,11,11,11,11,11,10,9,8,7,6,5,4,3,2,1,0], 10, false);
 	this.axx.animations.add("blink", [0,1,2,3,2,1,0], 15, false);
 	this.axx.animations.add("ears", [0,1,2,3,4,3,2,1,0,1,2,3,4,3,2,1,0], 15, false);
@@ -266,6 +271,7 @@ gameplayState.prototype.turn = function(badger, wall) {
 gameplayState.prototype.access = function(badger, gate) {
   if ((gate.type.includes(badger.type) || badger.type === 'honeybadger') && this.notSide(badger, gate)){
 		if (badger.passed === false) {
+			// Gives badger a lab coat if it's the first time passing through gate
 			switch (badger.type) {
 				case "blue":
 					badger.loadTexture("blue jacket");
@@ -302,6 +308,7 @@ gameplayState.prototype.notSide = function(badger, gate) {
 gameplayState.prototype.destroyTalk = function(){
 	this.talkBubble.kill();
 };
+
 // Turns badger according to switch direction
 gameplayState.prototype.switchTurn = function(badger, arrow) {
 	let direction = this.directions[arrow.pointing];
@@ -349,7 +356,7 @@ gameplayState.prototype.isCenter = function(object1, object2) {
 	return false;
 };
 
-// Turns the switch
+// Turns the switch, and deletes if selection is "delete"
 gameplayState.prototype.changeSwitch = function(arrow) {
 	if (this.selection === "delete") {
 		this.counts[1]--;
@@ -374,6 +381,7 @@ gameplayState.prototype.disallowPlacement = function(x) {
 	this.canPlace = false;
 };
 
+// Re-allows items to be placed once leaving boundaries of an object
 gameplayState.prototype.allowPlacement = function(x) {
 	this.canPlace = true;
 };
@@ -389,6 +397,7 @@ gameplayState.prototype.trapped = function(badger, trap) {
 	badger.kill();
 };
 
+// Deletes clicked object if selection is delete
 gameplayState.prototype.delete = function(object) {
 	if (this.selection === "delete") {
 		this.counts[object.index]--;
@@ -396,47 +405,55 @@ gameplayState.prototype.delete = function(object) {
 			this.prev_x = 0;
 			this.prev_y = 0;
 		}
+		this.canPlace = true;
 		object.kill();
 		this.updateButtonValues();
 	}
 };
 
+// Spawns an available badger
 gameplayState.prototype.spawnBadger = function(args) {
 	let x = args[0];
 	let y = args[1];
 	let is_valid = true;
 	let badger_type = -1;
+	// Sees if all badgers have been spawned
 	for (let i = 0; i < this.badger_nums.length; i++) {
 		if (this.badger_nums[i] !== 0) {
 			is_valid = false;
 		}
 	}
+	// If so, kill loop
 	if (is_valid) {
+		this.done_spawning = true;
 		this.spawnLoop.stop();
 		return;
 	}
+	// Otherwise, search for available badger to spawn
 	while (!is_valid) {
 		badger_index = game.rnd.integerInRange(0, 3);
 		if (this.badger_nums[badger_index] !== 0) {
 			is_valid = true;
 		}
 	}
+	// Then spawn it!
 	if (badger_index !== -1) {
 		let badger_type = this.badger_types[badger_index];
 		let badger = this.people.create(x + 37.5, y + 37.5, badger_type);
 		this.started = true;
 		badger.body.velocity.y = 75;
-		badger.type = badger_type;
-		badger.passed = false;
-		this.badger_nums[badger_index]--;
+		badger.type = badger_type; // Badger color
+		badger.passed = false; // Tracks if badger has passed through a gate yet
+		this.badger_nums[badger_index]--; // Tracks a badger of this type has spawned
 		badger.animations.add("walk", [0,1,0,2], 6, true);
 		badger.animations.play("walk");
 		badger.anchor.setTo(0.5, 0.5);
 		badger.angle += 180;
-		badger.scored = false;
+		badger.scored = false; // Prevent double-scoring for badger
 	}
 }
 
+// Starts spawning loop for badgers
 gameplayState.prototype.startSpawning = function() {
 	if(!this.started){
 		let enter_timer = game.time.create(false);
@@ -452,6 +469,7 @@ gameplayState.prototype.loadLevel = function(x){
 	this.generateLevelFromFile(data);
 };
 
+// Lets badgers leave the stage and gives points accordingly
 gameplayState.prototype.exit = function(badger, exit) {
 	if (badger.type === exit.type && badger.passed && !badger.scored) {
 		badger.scored = true;
@@ -468,29 +486,50 @@ gameplayState.prototype.exit = function(badger, exit) {
 	badger.kill();
 }
 
-gameplayState.prototype.restart = function() {
-	this.people.callAll("kill");
-	this.floor.callAll("kill");
-	this.walls.callAll("kill");
-	this.gates.callAll("kill");
-	this.switches.callAll("kill");
-	this.traps.callAll("kill");
-	this.entrances.callAll("kill");
-	this.exits.callAll("kill");
+// Dialogue box that appears upon level completion
+gameplayState.prototype.congratsBox = function() {
+	this.level++;
+	this.transition_box.create(1000, 300, "bg");
+	let button = this.createButton(1185, 600, "", "", "blue", this.restart);
+	let text1 = game.add.text(1350, 640, "Continue", {fontSize:"40px", fill:"#000"});
+	let text2;
+	if (this.level !== 4) { text2 = game.add.text(1110, 400, "Level Cleared!", {fontSize:"100px", fill:"#000"}); }
+	else { text2 = game.add.text(1055, 400, "Congratulations!", {fontSize:"100px", fill:"#000"}); }
+	this.transition_box.add(text2);
+	this.transition_box.add(button);
+	this.transition_box.add(text1);
+}
 
-	if (this.spawnLoop != null) { this.spawnLoop.stop(); }
-	this.loadLevel(this.level);
-	this.loadConversation(this.level);
-	this.startButton.text.text = "Start";
-	this.counts = [0, 0, 0];
-	this.buildPhase = true;
-	this.started = false;
-	this.score = 0;
-	this.scoreText.text = "Score: "+this.score+"/"+this.badger_threshold;
-	this.selection = "";
-	this.updateButtonValues();
+// Loads in next level or title screen if final level
+gameplayState.prototype.restart = function() {
+	if (this.level !== 4) {
+		this.people.callAll("kill");
+		this.floor.callAll("kill");
+		this.walls.callAll("kill");
+		this.gates.callAll("kill");
+		this.switches.callAll("kill");
+		this.traps.callAll("kill");
+		this.entrances.callAll("kill");
+		this.exits.callAll("kill");
+		this.transition_box.callAll("kill");
+
+		if (this.spawnLoop != null) { this.spawnLoop.stop(); }
+		this.loadLevel(this.level);
+		this.loadConversation(this.level);
+		this.startButton.text.text = "Start";
+		this.counts = [0, 0, 0];
+		this.buildPhase = true;
+		this.started = false;
+		this.score = 0;
+		this.scoreText.text = "Score: "+this.score+"/"+this.badger_threshold;
+		this.selection = "";
+		this.updateButtonValues();
+	} else {
+		game.state.start("Title");
+	}
 };
 
+// Resets level, keeping placed objects
 gameplayState.prototype.reset = function() {
 	this.people.callAll("kill");
 
@@ -675,6 +714,7 @@ gameplayState.prototype.changeDisabled = function(obj){
 	obj.button.inputEnabled = !obj.button.inputEnabled;
 };
 
+// Plays random animation for Axx
 gameplayState.prototype.animateAxx = function() {
 	let animation = this.animations[game.rnd.integerInRange(0,2)];
 	this.axx.loadTexture(animation);

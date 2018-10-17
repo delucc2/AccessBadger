@@ -2,7 +2,9 @@
 gameplayState.prototype.createButton = function(x, y, text, image = "", color, onClick, textAlignmentX = 10, textAlignmentY = 10){
 	let buttonGroup = game.add.group();
 	let button = game.add.button(x, y, color+"_button_sheet", onClick, this, 2, 1, 0);
-	let uiText = game.add.text(x, y, text, {fontSize:"36px", fill:"#000", wordWrap:true});
+	let uiText;
+	if (color === "talk" || color === "intercom") { uiText = game.add.text(x, y, text, {fontSize:"36px", fill:"#000", wordWrap:true}); }
+	else { uiText = game.add.text(x + 20, y + 35, text, {fontSize:"36px", fill:"#000", wordWrap:true}); }
 	if (color === "talk"){
 		button.width = (text.length * 30) + textAlignmentX;
 		if(button.width > 2000){
@@ -15,7 +17,7 @@ gameplayState.prototype.createButton = function(x, y, text, image = "", color, o
 	buttonGroup.add(button);
 	buttonGroup.add(uiText);
 	if(image !== ""){
-		
+
 		buttonGroup.add(game.add.sprite(x+280, y+30, image));
 	}
 	buttonGroup.text = uiText;
