@@ -98,6 +98,7 @@ gameplayState.prototype.create = function(){
 
 gameplayState.prototype.update = function(){
 	let mouse = game.input.activePointer;
+	let cursor = game.input.keyboard.createCursorKeys();
 
 	this.graphics.clear(); // Clears all grid boxes
 	//Sets ui zone
@@ -123,6 +124,11 @@ gameplayState.prototype.update = function(){
 	// After all badgers are spawned + leave, if player has passing score,
 	// display dialogue box to take player to the next level
 	if (this.people.countLiving() === 0 && this.started && this.score >= 7) {
+		this.started = false;
+		this.congratsBox();
+	}
+
+	if (cursor.down.isDown && this.started) {
 		this.started = false;
 		this.congratsBox();
 	}
@@ -525,13 +531,14 @@ gameplayState.prototype.restart = function() {
 		this.selection = "";
 		this.updateButtonValues();
 	} else {
-		game.state.start("Title");
 		this.level = 1;
 		this.counts = [0, 0, 0];
 		this.buildPhase = true;
 		this.started = false;
 		this.score = 0;
 		this.selection = "";
+		this.music.stop();
+		game.state.start("Title");
 	}
 };
 
@@ -592,11 +599,13 @@ gameplayState.prototype.generateLevelFromFile = function(text){
 					gate2.events.onInputOver.add(this.disallowPlacement, this);
 					break;
 				case('5'):
-					let entrance = this.entrances.create(j * 75 + 535, i * 75, "start");
+					let entrance = this.entrances.create(j * 75 + 572.5, i * 75 + 37.5, "start");
 					entrance.events.onInputOver.add(this.disallowPlacement, this);
 					entrance.events.onInputOut.add(this.allowPlacement, this);
 					this.entrance_x = j * 75 + 535;
 					this.entrance_y = i * 75;
+					entrance.anchor.setTo(0.5, 0.5);
+					if (this.level === 3) { entrance.angle += 90; }
 					break;
 				case('6'):
 					let exit_blue = this.exits.create(j * 75 + 535, i * 75, "blue exit");
