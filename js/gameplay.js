@@ -16,7 +16,9 @@ let gameplayState = function(){
 	this.badger_threshold = 7;
 	this.entrance_x;
 	this.entrance_y;
+	this.buildPhase = true;
 	this.started = false;
+	this.level = 3;
 };
 
 gameplayState.prototype.create = function(){
@@ -44,10 +46,6 @@ gameplayState.prototype.create = function(){
 	this.gates = game.add.group();
 	this.gates.enableBody = true;
 
-	// Badger group
-	this.people = game.add.group();
-	this.people.enableBody = true;
-
 	// Switch Group
 	this.switches = game.add.group();
 	this.switches.enableBody = true;
@@ -63,7 +61,11 @@ gameplayState.prototype.create = function(){
 	this.exits = game.add.group();
 	this.exits.enableBody = true;
 
-	this.loadLevel();
+	// Badger group
+	this.people = game.add.group();
+	this.people.enableBody = true;
+
+	this.loadLevel(this.level);
 
 	this.blueBadgersLeft = this.badger_nums[0];
 	this.redBadgersLeft = this.badger_nums[1];
@@ -87,6 +89,11 @@ gameplayState.prototype.create = function(){
 	// this.speechBubbleStartTime = game.time.time;
 
 	game.input.activePointer.leftButton.onDown.add(this.buildObject, this);
+
+	this.correct = game.add.audio("correct");
+	this.correct_exit = game.add.audio("correct exit");
+	this.trap = game.add.audio("trap sfx");
+	this.wrong = game.add.audio("wrong");
 };
 
 gameplayState.prototype.update = function(){
@@ -122,9 +129,9 @@ gameplayState.prototype.update = function(){
 	//this.updateSpeechBubble();
 
 	// For debug, controls for placing badgers and switches
-	if (this.cursors.right.isDown && !this.started) {
+	if (this.cursors.right.isDown && this.buildPhase) {
 		this.startSpawning();
-		this.started = true;
+		this.buildPhase = false;
 	}
 
 	if (this.cursors.left.isDown) {
@@ -132,20 +139,12 @@ gameplayState.prototype.update = function(){
 	}
 
 	if (this.cursors.down.isDown) {
-		this.people.callAll("kill");
-		this.spawnLoop.stop();
-		this.floor.callAll("kill");
-		this.walls.callAll("kill");
-		this.gates.callAll("kill");
-		this.switches.callAll("kill");
-		this.traps.callAll("kill");
-		this.entrances.callAll("kill");
-		this.exits.callAll("kill");
+		this.restart();
+	}
 
-		this.loadLevel();
-		this.object_caps = [5,5,5];
-		this.badger_nums = [2, 2, 2, 2];
-		this.started = false;
+	if (this.people.countLiving() === 0 && this.started) {
+		this.level++;
+		this.restart();
 	}
 
 	// Collisions
@@ -158,7 +157,7 @@ gameplayState.prototype.update = function(){
 
 // Builds whatever is selected on a grid location
 gameplayState.prototype.buildObject = function() {
-	if (this.cursor_x !== -1 && this.canPlace && (this.cursor_x !== this.prev_x || this.cursor_y !== this.prev_y) && this.selection !== "") {
+	if (this.cursor_x !== -1 && this.canPlace && (this.cursor_x !== this.prev_x || this.cursor_y !== this.prev_y) && this.selection !== "" && this.buildPhase) {
 		this.prev_x = this.cursor_x;
 		this.prev_y = this.cursor_y;
 		switch(this.selection) {
@@ -220,7 +219,7 @@ gameplayState.prototype.setupUI = function(){
 	this.scoreText = game.add.text(10, 10, "Score: 0/" + this.badger_threshold, {fontSize: '32px', fill: '#000'});
 	this.switchButton = this.createButton(0, 200, "Switch", "switch", "blue", this.setSelectionSwitch);
 	this.wallButton = this.createButton(0, 60, "Wall", "wall", "red", this.setSelectionWall);
-	this.trapButton = this.createButton(0, 340, "Trap", "trap_ui", "yellow", this.setSelectionTrap);
+	this.trapButton = this.createButton(0, 340, "Trap", "trap", "yellow", this.setSelectionTrap);
 	this.pauseButton = this.createButton(0, 480, "Pause", "", "orange", this.pauseGame);
 	this.deleteButton = this.createButton(170, 480, "Delete", "", "orange", this.setDelete);
 	this.startButton = this.createButton(340, 480, "Start", "", "orange", this.startGame);
@@ -292,30 +291,69 @@ gameplayState.prototype.turn = function(badger, wall) {
 
 // Checks if badger can pass through gate
 gameplayState.prototype.access = function(badger, gate) {
-  if (gate.type.includes(badger.type) || badger.type === 'honeybadger') {
-    return false;
+	console.log(this.notSide(badger, gate));
+  if ((gate.type.includes(badger.type) || badger.type === 'honeybadger') && this.notSide(badger, gate)){
+		if (badger.passed === false) {
+			switch (badger.type) {
+				case "blue":
+					badger.loadTexture("blue jacket");
+					badger.animations.play("walk");
+					break;
+				case "red":
+					badger.loadTexture("red jacket");
+					badger.animations.play("walk");
+					break;
+				case "yellow":
+					badger.loadTexture("yellow jacket");
+					badger.animations.play("walk");
+					break;
+			}
+			if (badger.type !== "honeybadger") { this.correct.play(); }
+		}
 		badger.passed = true;
+    return false;
   } else {
 		return true;
 	}
 };
 
+// Checks to see if the badger is colliding with the gate's side
+gameplayState.prototype.notSide = function(badger, gate) {
+	if ((badger.centerY === gate.centerY && gate.direction === "horizontal") ||
+		(badger.centerX === gate.centerX && gate.direction === "vertical")) {
+		return true;
+	} else {
+		return false;
+	}
+}
 
+gameplayState.prototype.destroyTalk = function(){
+	this.talkBubble.kill();
+};
 // Turns badger according to switch direction
 gameplayState.prototype.switchTurn = function(badger, arrow) {
 	let direction = this.directions[arrow.pointing];
-	if (direction === 'right') {
-		badger.body.velocity.x = 75;
-		badger.body.velocity.y = 0;
-	} else if (direction === 'left') {
-		badger.body.velocity.x = -75;
-		badger.body.velocity.y = 0;
-	} else if (direction === 'up') {
-		badger.body.velocity.x = 0;
-		badger.body.velocity.y = -75;
-	} else if (direction === 'down') {
-		badger.body.velocity.x = 0;
-		badger.body.velocity.y = 75;
+	if (badger.type !== "honeybadger") {
+		if (direction === 'right') {
+			badger.body.velocity.x = 75;
+			badger.body.velocity.y = 0;
+			badger.angle = 90;
+		} else if (direction === 'left') {
+			badger.body.velocity.x = -75;
+			badger.body.velocity.y = 0;
+			badger.angle = 270;
+		} else if (direction === 'up') {
+			badger.body.velocity.x = 0;
+			badger.body.velocity.y = -75;
+			badger.angle = 0;
+		} else if (direction === 'down') {
+			badger.body.velocity.x = 0;
+			badger.body.velocity.y = 75;
+			badger.angle = 180;
+		}
+	} else {
+		console.log("x", badger.body.velocity.x);
+		console.log("y", badger.body.velocity.y);
 	}
 };
 
@@ -333,8 +371,10 @@ gameplayState.prototype.isCenter = function(object1, object2) {
 	let dif_x = Phaser.Math.difference(object1.centerX, object2.centerX);
 	let dif_y = Phaser.Math.difference(object1.centerY, object2.centerY);
 	if (dif_x <= 2 && dif_y <= 2) {
-		object1.body.velocity.x = 0;
-		object1.body.velocity.y = 0;
+		if (object1.type !== "honeybadger") {
+			object1.body.velocity.x = 0;
+			object1.body.velocity.y = 0;
+		}
 		return true;
 	}
 	return false;
@@ -370,6 +410,7 @@ gameplayState.prototype.trapped = function(badger, trap) {
 	if (badger.type !== "honeybadger") {
 		this.score -= 1;
 	}
+	this.trap.play();
 	badger.kill();
 };
 
@@ -402,6 +443,7 @@ gameplayState.prototype.spawnBadger = function(args) {
 	if (badger_index !== -1) {
 		let badger_type = this.badger_types[badger_index];
 		let badger = this.people.create(x + 37.5, y + 37.5, badger_type);
+		this.started = true;
 		badger.body.velocity.y = 75;
 		badger.type = badger_type;
 		badger.passed = false;
@@ -422,15 +464,22 @@ gameplayState.prototype.startSpawning = function() {
 	}
 }
 
-gameplayState.prototype.loadLevel = function(){
-	let data = game.cache.getText('level1');
+gameplayState.prototype.loadLevel = function(x){
+	let file = 'level' + x;
+	let data = game.cache.getText(file);
 	this.generateLevelFromFile(data);
 };
 
 gameplayState.prototype.exit = function(badger, exit) {
 	if (badger.type === exit.type && badger.passed) {
+		this.correct_exit.play();
 		this.score += 1;
 		this.scoreText.text = "Score: "+this.score+"/"+this.badger_threshold;
+	} else if (badger.type === "honeybadger") {
+		this.score -= 1;
+		this.wrong.play();
+	} else {
+		this.wrong.play();
 	}
 	console.log(this.score);
 	badger.kill();
@@ -446,11 +495,12 @@ gameplayState.prototype.restart = function() {
 	this.entrances.callAll("kill");
 	this.exits.callAll("kill");
 
-	this.spawnLoop.stop();
-	this.loadLevel();
-	this.object_caps = [5,5,5];
-	this.badger_nums = [2, 2, 2, 2];
+	if (this.spawnLoop != null) { this.spawnLoop.stop(); }
+	this.loadLevel(this.level);
+	this.counts = [0, 0, 0];
+	this.buildPhase = true;
 	this.started = false;
+	this.score = 0;
 }
 
 gameplayState.prototype.generateLevelFromFile = function(text){
@@ -466,22 +516,36 @@ gameplayState.prototype.generateLevelFromFile = function(text){
 				case('1'):
 					let wall = this.walls.create(j * 75 + 535, i * 75, "wall");
 					wall.body.immovable = true;
-
+					wall.inputEnabled = true;
+					wall.events.onInputOver.add(this.disallowPlacement, this);
+					wall.events.onInputOut.add(this.allowPlacement, this);
 					break;
 				case('2'):
 					let gate = this.gates.create(j * 75 + 535, i * 75, "purple gate");
 					gate.body.immovable = true;
 					gate.type = ["blue", "red"];
+					gate.direction = "horizontal";
+					gate.inputEnabled = true;
+					gate.events.onInputDown.add(this.changeSwitch, this);
+					gate.events.onInputOver.add(this.disallowPlacement, this);
 					break;
 				case('3'):
 					let gate1 = this.gates.create(j * 75 + 535, i * 75, "green gate");
 					gate1.body.immovable = true;
 					gate1.type = ["blue", "yellow"];
+					gate1.direction = "horizontal";
+					gate1.inputEnabled = true;
+					gate1.events.onInputDown.add(this.changeSwitch, this);
+					gate1.events.onInputOver.add(this.disallowPlacement, this);
 					break;
 				case('4'):
 					let gate2 = this.gates.create(j * 75 + 535, i * 75, "orange gate");
 					gate2.body.immovable = true;
 					gate2.type = ["red", "yellow"];
+					gate2.direction = "horizontal";
+					gate2.inputEnabled = true;
+					gate2.events.onInputDown.add(this.changeSwitch, this);
+					gate2.events.onInputOver.add(this.disallowPlacement, this);
 					break;
 				case('5'):
 					let entrance = this.entrances.create(j * 75 + 535, i * 75, "start");
@@ -508,6 +572,38 @@ gameplayState.prototype.generateLevelFromFile = function(text){
 					exit_yellow.events.onInputOver.add(this.disallowPlacement, this);
 					exit_yellow.events.onInputOut.add(this.allowPlacement, this);
 					break;
+				case('a'):
+					let gate3 = this.gates.create(j * 75 + 572.5, i * 75 + 37.5, "orange gate");
+					gate3.body.immovable = true;
+					gate3.type = ["red", "yellow"];
+					gate3.direction = "vertical";
+					gate3.inputEnabled = true;
+					gate3.events.onInputDown.add(this.changeSwitch, this);
+					gate3.events.onInputOver.add(this.disallowPlacement, this);
+					gate3.anchor.setTo(0.5, 0.5);
+					gate3.angle += 90;
+					break;
+				case('b'):
+					let gate4 = this.gates.create(j * 75 + 572.5, i * 75 + 37.5, "purple gate");
+					gate4.body.immovable = true;
+					gate4.type = ["red", "blue"];
+					gate4.direction = "vertical";
+					gate4.inputEnabled = true;
+					gate4.events.onInputDown.add(this.changeSwitch, this);
+					gate4.events.onInputOver.add(this.disallowPlacement, this);
+					gate4.anchor.setTo(0.5, 0.5);
+					gate4.angle += 90;
+					break;
+				case('c'):
+				let gate5 = this.gates.create(j * 75 + 572.5, i * 75 + 37.5, "green gate");
+					gate5.body.immovable = true;
+					gate5.type = ["blue", "yellow"];
+					gate5.direction = "vertical";
+					gate5.inputEnabled = true;
+					gate5.events.onInputDown.add(this.changeSwitch, this);
+					gate5.events.onInputOver.add(this.disallowPlacement, this);
+					gate5.anchor.setTo(0.5, 0.5);
+					gate5.angle += 90;
 				default:
 					break;
 			}
@@ -532,14 +628,13 @@ gameplayState.prototype.pauseGame = function(){
 
 
 gameplayState.prototype.startGame = function(){
-	if(!this.started){
+	if (this.buildPhase) {
 		this.startSpawning();
 		this.startButton.text.text = "Restart";
-		this.started = true;
-	}
-	else{
-		this.restart();
-		this.startButton.text.text = "Start";
+		this.buildPhase = false;
+	} else {
+	    this.restart();
+	    this.startButton.text.text = "Start";
 	}
 };
 
