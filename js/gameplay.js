@@ -85,6 +85,11 @@ gameplayState.prototype.create = function(){
 	this.speechBubbleStartTime = game.time.time;
 
 	game.input.activePointer.leftButton.onDown.add(this.buildObject, this);
+
+	this.correct = game.add.audio("correct");
+	this.correct_exit = game.add.audio("correct exit");
+	this.trap = game.add.audio("trap sfx");
+	this.wrong = game.add.audio("wrong");
 };
 
 gameplayState.prototype.update = function(){
@@ -210,7 +215,7 @@ gameplayState.prototype.setupUI = function(){
 	this.timeText = game.add.text(10, 10, "Time: 0", {fontSize: '32px', fill: '#000'});
 	this.switchButton = this.createButton(0, 200, "Switch", "switch", "blue", this.setSelectionSwitch);
 	this.wallButton = this.createButton(0, 60, "Wall", "wall", "red", this.setSelectionWall);
-	this.trapButton = this.createButton(0, 340, "Trap", "trap_ui", "yellow", this.setSelectionTrap);
+	this.trapButton = this.createButton(0, 340, "Trap", "trap", "yellow", this.setSelectionTrap);
 	this.pauseButton = this.createButton(0, 480, "Pause", "", "orange", this.pauseGame);
 	this.deleteButton = this.createButton(170, 480, "Delete", "", "orange", this.setDelete);
 	this.startButton = this.createButton(340, 480, "Start", "", "orange", this.startGame);
@@ -297,6 +302,7 @@ gameplayState.prototype.access = function(badger, gate) {
 					badger.animations.play("walk");
 					break;
 			}
+			if (badger.type !== "honeybadger") { this.correct.play(); }
 		}
 		badger.passed = true;
     return false;
@@ -391,6 +397,7 @@ gameplayState.prototype.trapped = function(badger, trap) {
 	if (badger.type !== "honeybadger") {
 		this.score -= 1;
 	}
+	this.trap.play();
 	badger.kill();
 };
 
@@ -452,7 +459,13 @@ gameplayState.prototype.loadLevel = function(x){
 
 gameplayState.prototype.exit = function(badger, exit) {
 	if (badger.type === exit.type && badger.passed) {
+		this.correct_exit.play();
 		this.score += 1;
+	} else if (badger.type === "honeybadger") {
+		this.score -= 1;
+		this.wrong.play();
+	} else {
+		this.wrong.play();
 	}
 	console.log(this.score);
 	badger.kill();
