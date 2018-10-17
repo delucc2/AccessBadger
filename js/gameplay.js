@@ -66,7 +66,7 @@ gameplayState.prototype.create = function(){
 
 	this.loadLevel();
 	this.setupUI();
-
+	this.loadConversation();
 
 	// Draws Grid
 	this.grid = [];
@@ -223,8 +223,15 @@ gameplayState.prototype.setupUI = function(){
 	this.blueBadgersLeftText = game.add.text(10, 610, "Blue Badgers Left: 0", {fontSize: '32px', fill: '#000'});
 	this.redBadgersLeftText = game.add.text(10, 650, "Red Badgers Left: 0", {fontSize: '32px', fill: '#000'});
 	this.yellowBadgersLeftText = game.add.text(10, 690, "Yellow Badgers Left: 0", {fontSize: '32px', fill: '#000'});
-	this.talkBubble = this.createButton(350, 300, "THIS IS TEXT FROM AXX", "", "talk", this.destroyTalk, 100, 180);
-	this.intercom = this.createButton(350, 800, "THIS IS TEXT FROM THE COYOTE", "", "intercom", this.destroyIntercom, 30, 180);
+
+	this.uiGroup = game.add.group();
+	this.uiGroup.add(this.switchButton);
+	this.uiGroup.add(this.wallButton);
+	this.uiGroup.add(this.trapButton);
+	this.uiGroup.add(this.pauseButton);
+	this.uiGroup.add(this.deleteButton);
+	this.uiGroup.add(this.startButton);
+	
 
 
 	this.wallButton.text.text = "Wall: " + this.object_caps[0];
@@ -278,9 +285,7 @@ gameplayState.prototype.turn = function(badger, wall) {
 	badger.angle -= 90;
 };
 
-gameplayState.prototype.destroyIntercom = function(){
-	this.intercom.kill();
-};
+
 // Checks if badger can pass through gate
 gameplayState.prototype.access = function(badger, gate) {
   if (gate.type.includes(badger.type) || badger.type === 'honeybadger') {
@@ -291,9 +296,7 @@ gameplayState.prototype.access = function(badger, gate) {
 	}
 };
 
-gameplayState.prototype.destroyTalk = function(){
-	this.talkBubble.kill();
-};
+
 // Turns badger according to switch direction
 gameplayState.prototype.switchTurn = function(badger, arrow) {
 	let direction = this.directions[arrow.pointing];
@@ -510,6 +513,14 @@ gameplayState.prototype.generateLevelFromFile = function(text){
 };
 
 
+gameplayState.prototype.loadConversation = function(){
+	this.uiGroup.forEach(this.changeDisabled, this);
+	let data = game.cache.getText('level1Text');
+	let textList = data.split("\n");
+	this.runConversation(textList, 0);
+	//this.uiGroup.forEach(changeDisabled, this);
+};
+
 gameplayState.prototype.pauseGame = function(){
 	game.paused = !game.paused;
 };
@@ -522,4 +533,39 @@ gameplayState.prototype.startGame = function(){
 
 gameplayState.prototype.setDelete = function(){
 	this.selection = "delete";
+};
+
+gameplayState.prototype.runConversation = function(textList, index){
+	if(index === textList.length){
+		this.uiGroup.forEach(this.changeDisabled, this);
+	}
+	else if(index % 2 === 1){
+		let line = textList[index].substring(textList[index].indexOf("- ") + 2, textList[index].length);
+		this.talkBubble = this.createButton(350, 300, line, "", "talk", function(){
+			this.talkBubble.kill();
+			this.runConversation(textList, index + 1);
+		}, 100, 180);
+	}
+	else{
+		let line = textList[index].substring(textList[index].indexOf("- ") + 2, textList[index].length);
+		this.intercom = this.createButton(350, 800, line, "", "intercom", function(){
+			this.intercom.kill();
+			this.runConversation(textList, index + 1);
+		}, 30, 120);
+	}
+
+	
+};
+
+gameplayState.prototype.destroyIntercom = function(){
+	this.intercom.kill();
+};
+
+gameplayState.prototype.destroyTalk = function(){
+	this.talkBubble.kill();
+};
+
+gameplayState.prototype.changeDisabled = function(obj){
+
+	obj.button.inputEnabled = !obj.button.inputEnabled;
 };
