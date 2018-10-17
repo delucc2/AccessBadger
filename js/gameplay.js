@@ -527,6 +527,11 @@ gameplayState.prototype.restart = function() {
 	} else {
 		game.state.start("Title");
 		this.level = 1;
+		this.counts = [0, 0, 0];
+		this.buildPhase = true;
+		this.started = false;
+		this.score = 0;
+		this.selection = "";
 	}
 };
 
