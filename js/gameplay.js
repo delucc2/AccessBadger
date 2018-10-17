@@ -13,8 +13,7 @@ let gameplayState = function(){
 	this.prev_x = -1;
 	this.prev_y = -1;
 	this.isSpeechBubbleActive = false;
-	this.speechBubbleActiveTime = 5000;
-	this.speechBubbleStartTime = 0;
+	this.badger_threshold = 7;
 	this.entrance_x;
 	this.entrance_y;
 	this.buildPhase = true;
@@ -30,8 +29,7 @@ gameplayState.prototype.create = function(){
 	this.music.loop = true;
     this.music.play();*/
 
-	this.startTime = this.game.time.time;
-	this.time = this.game.time.time;
+	
 	this.blueBadgersLeft = 0;
 	this.redBadgersLeft = 0;
 	this.yellowBadgersLeft = 0;
@@ -68,7 +66,13 @@ gameplayState.prototype.create = function(){
 	this.people.enableBody = true;
 
 	this.loadLevel(this.level);
+
+	this.blueBadgersLeft = this.badger_nums[0];
+	this.redBadgersLeft = this.badger_nums[1];
+	this.yellowBadgersLeft = this.badger_nums[2];
+
 	this.setupUI();
+	this.loadConversation();
 
 	// Draws Grid
 	this.grid = [];
@@ -80,9 +84,9 @@ gameplayState.prototype.create = function(){
 
 	// this.object_caps = [5,5,5];
 	// this.badger_nums = [2, 2, 2, 2];
-	this.speechBubble = this.makeQuip(20, 500, "Hi, I'm an Access Badger");
-	this.isSpeechBubbleActive = true;
-	this.speechBubbleStartTime = game.time.time;
+	// this.speechBubble = this.makeQuip(20, 500, "Hi, I'm an Access Badger");
+	// this.isSpeechBubbleActive = true;
+	// this.speechBubbleStartTime = game.time.time;
 
 	game.input.activePointer.leftButton.onDown.add(this.buildObject, this);
 
@@ -104,7 +108,7 @@ gameplayState.prototype.update = function(){
 	this.graphics.drawRect(0, 0, 513, 1125);
 	this.graphics.endFill();
 
-	this.updateTime();
+	
 	// If the cursor is in a box, highlight as red
 	for (let i = 0; i < this.grid.length; i++) {
 		if (this.grid[i].contains(game.input.x, game.input.y)) {
@@ -122,7 +126,7 @@ gameplayState.prototype.update = function(){
 		this.cursor_x = -1;
 		this.cursor_y = -1;
 	}
-	this.updateSpeechBubble();
+	//this.updateSpeechBubble();
 
 	// For debug, controls for placing badgers and switches
 	if (this.cursors.right.isDown && this.buildPhase) {
@@ -212,18 +216,25 @@ gameplayState.prototype.setupUI = function(){
 	this.graphics.beginFill(0xA5CBD2);
 	this.graphics.drawRect(0, 0, 513, 1125);
 	this.graphics.endFill();
-	this.timeText = game.add.text(10, 10, "Time: 0", {fontSize: '32px', fill: '#000'});
+	this.scoreText = game.add.text(10, 10, "Score: 0/" + this.badger_threshold, {fontSize: '32px', fill: '#000'});
 	this.switchButton = this.createButton(0, 200, "Switch", "switch", "blue", this.setSelectionSwitch);
 	this.wallButton = this.createButton(0, 60, "Wall", "wall", "red", this.setSelectionWall);
 	this.trapButton = this.createButton(0, 340, "Trap", "trap", "yellow", this.setSelectionTrap);
 	this.pauseButton = this.createButton(0, 480, "Pause", "", "orange", this.pauseGame);
 	this.deleteButton = this.createButton(170, 480, "Delete", "", "orange", this.setDelete);
 	this.startButton = this.createButton(340, 480, "Start", "", "orange", this.startGame);
-	this.blueBadgersLeftText = game.add.text(10, 610, "Blue Badgers Left: 0", {fontSize: '32px', fill: '#000'});
-	this.redBadgersLeftText = game.add.text(10, 650, "Red Badgers Left: 0", {fontSize: '32px', fill: '#000'});
-	this.yellowBadgersLeftText = game.add.text(10, 690, "Yellow Badgers Left: 0", {fontSize: '32px', fill: '#000'});
-	this.talkBubble = this.createButton(350, 300, "THIS IS TEXT FROM AXX", "", "talk", this.destroyTalk, 100, 180);
-	this.intercom = this.createButton(350, 800, "THIS IS TEXT FROM THE COYOTE", "", "intercom", this.destroyIntercom, 30, 180);
+	this.blueBadgersLeftText = game.add.text(10, 610, "Blue Badgers Left: " + this.blueBadgersLeft, {fontSize: '32px', fill: '#000'});
+	this.redBadgersLeftText = game.add.text(10, 650, "Red Badgers Left: " + this.redBadgersLeft, {fontSize: '32px', fill: '#000'});
+	this.yellowBadgersLeftText = game.add.text(10, 690, "Yellow Badgers Left: " + this.yellowBadgersLeft, {fontSize: '32px', fill: '#000'});
+
+	this.uiGroup = game.add.group();
+	this.uiGroup.add(this.switchButton);
+	this.uiGroup.add(this.wallButton);
+	this.uiGroup.add(this.trapButton);
+	this.uiGroup.add(this.pauseButton);
+	this.uiGroup.add(this.deleteButton);
+	this.uiGroup.add(this.startButton);
+	
 
 
 	this.wallButton.text.text = "Wall: " + this.object_caps[0];
@@ -231,10 +242,6 @@ gameplayState.prototype.setupUI = function(){
 	this.trapButton.text.text = "Trap: " + this.object_caps[2];
 };
 
-gameplayState.prototype.updateTime = function(){
-	this.time = this.game.time.time;
-	this.timeText.text = "Time: " + (Math.floor((this.time - this.startTime) / 1000));
-};
 
 gameplayState.prototype.decreaseBlueBadgersLeft = function(){
 	this.blueBadgersLeft--;
@@ -281,9 +288,7 @@ gameplayState.prototype.turn = function(badger, wall) {
 	badger.angle -= 90;
 };
 
-gameplayState.prototype.destroyIntercom = function(){
-	this.intercom.kill();
-};
+
 // Checks if badger can pass through gate
 gameplayState.prototype.access = function(badger, gate) {
 	console.log(this.notSide(badger, gate));
@@ -469,6 +474,7 @@ gameplayState.prototype.exit = function(badger, exit) {
 	if (badger.type === exit.type && badger.passed) {
 		this.correct_exit.play();
 		this.score += 1;
+		this.scoreText.text = "Score: "+this.score+"/"+this.badger_threshold;
 	} else if (badger.type === "honeybadger") {
 		this.score -= 1;
 		this.wrong.play();
@@ -608,6 +614,14 @@ gameplayState.prototype.generateLevelFromFile = function(text){
 };
 
 
+gameplayState.prototype.loadConversation = function(){
+	this.uiGroup.forEach(this.changeDisabled, this);
+	let data = game.cache.getText('level1Text');
+	let textList = data.split("\n");
+	this.runConversation(textList, 0);
+	
+};
+
 gameplayState.prototype.pauseGame = function(){
 	game.paused = !game.paused;
 };
@@ -616,10 +630,49 @@ gameplayState.prototype.pauseGame = function(){
 gameplayState.prototype.startGame = function(){
 	if (this.buildPhase) {
 		this.startSpawning();
+		this.startButton.text.text = "Restart";
 		this.buildPhase = false;
+	} else {
+	    this.restart();
+	    this.startButton.text.text = "Start";
 	}
 };
 
 gameplayState.prototype.setDelete = function(){
 	this.selection = "delete";
+};
+
+gameplayState.prototype.runConversation = function(textList, index){
+	if(index === textList.length){
+		this.uiGroup.forEach(this.changeDisabled, this);
+	}
+	else if(index % 2 === 1){
+		let line = textList[index].substring(textList[index].indexOf("- ") + 2, textList[index].length);
+		this.talkBubble = this.createButton(350, 300, line, "", "talk", function(){
+			this.talkBubble.kill();
+			this.runConversation(textList, index + 1);
+		}, 100, 180);
+	}
+	else{
+		let line = textList[index].substring(textList[index].indexOf("- ") + 2, textList[index].length);
+		this.intercom = this.createButton(350, 800, line, "", "intercom", function(){
+			this.intercom.kill();
+			this.runConversation(textList, index + 1);
+		}, 30, 120);
+	}
+
+	
+};
+
+gameplayState.prototype.destroyIntercom = function(){
+	this.intercom.kill();
+};
+
+gameplayState.prototype.destroyTalk = function(){
+	this.talkBubble.kill();
+};
+
+gameplayState.prototype.changeDisabled = function(obj){
+
+	obj.button.inputEnabled = !obj.button.inputEnabled;
 };
