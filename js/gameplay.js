@@ -234,8 +234,8 @@ gameplayState.prototype.setupUI = function(){
 	this.uiGroup.add(this.pauseButton);
 	this.uiGroup.add(this.deleteButton);
 	this.uiGroup.add(this.startButton);
-
-
+	
+	this.axx = game.add.sprite(10, 740, "axx icon");
 
 	this.wallButton.text.text = "Wall: " + this.object_caps[0];
 	this.switchButton.text.text = "Switch: " + this.object_caps[1];
