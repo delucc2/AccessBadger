@@ -72,7 +72,7 @@ gameplayState.prototype.create = function(){
 	this.yellowBadgersLeft = this.badger_nums[2];
 
 	this.setupUI();
-	this.loadConversation();
+	this.loadConversation(this.level);
 
 	// Draws Grid
 	this.grid = [];
@@ -497,7 +497,7 @@ gameplayState.prototype.restart = function() {
 
 	if (this.spawnLoop != null) { this.spawnLoop.stop(); }
 	this.loadLevel(this.level);
-	this.loadConversation();
+	this.loadConversation(this.level);
 	this.counts = [0, 0, 0];
 	this.buildPhase = true;
 	this.started = false;
@@ -625,9 +625,9 @@ gameplayState.prototype.generateLevelFromFile = function(text){
 };
 
 
-gameplayState.prototype.loadConversation = function(){
+gameplayState.prototype.loadConversation = function(levelNum){
 	this.uiGroup.forEach(this.changeDisabled, this);
-	let data = game.cache.getText('level1Text');
+	let data = game.cache.getText('level'+levelNum+'Text');
 	let textList = data.split("\n");
 	this.runConversation(textList, 0);
 
