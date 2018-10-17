@@ -145,14 +145,14 @@ gameplayState.prototype.buildObject = function() {
 					this.counts[0]--;
 					break;
 				}
-				this.wallButton.text.text = "Wall: " + (this.object_caps[0] - this.counts[0]);
+				
 				let wall = this.walls.create(this.cursor_x, this.cursor_y, "wall");
 				wall.body.immovable = true;
 				wall.inputEnabled = true;
+				wall.index = 0;
 				wall.events.onInputOver.add(this.disallowPlacement, this);
 				wall.events.onInputOut.add(this.allowPlacement, this);
 				wall.events.onInputDown.add(this.delete, this);
-				this.index = 0;
 				break;
 			case "switch":
 				this.counts[1]++;
@@ -160,16 +160,17 @@ gameplayState.prototype.buildObject = function() {
 					this.counts[1]--;
 					break;
 				}
-				this.switchButton.text.text = "Switch: " + (this.object_caps[1] - this.counts[1]);
+				
 				let arrow = this.switches.create(this.cursor_x + 37.5, this.cursor_y + 37.5, "switch");
 				arrow.pointing = 0;
 				arrow.body.immovable = true;
 				arrow.inputEnabled = true;
+				arrow.index = 1;
 				arrow.events.onInputDown.add(this.changeSwitch, this);
 				arrow.events.onInputOver.add(this.disallowPlacement, this);
 				arrow.events.onInputOut.add(this.allowPlacement, this);
 				arrow.anchor.setTo(0.5, 0.5);
-				this.index = 1;
+				
 				break;
 			case "trap":
 				this.counts[2]++;
@@ -177,16 +178,17 @@ gameplayState.prototype.buildObject = function() {
 					this.counts[2]--;
 					break;
 				}
-				this.trapButton.text.text = "Trap: " + (this.object_caps[2] - this.counts[2]);
+				
 				let trap = this.traps.create(this.cursor_x, this.cursor_y, "trap");
 				trap.body.immovable = true;
 				trap.inputEnabled = true;
+				trap.index = 2;
 				trap.events.onInputOver.add(this.disallowPlacement, this);
 				trap.events.onInputOut.add(this.allowPlacement, this);
 				trap.events.onInputDown.add(this.delete, this);
-				this.index = 2;
 				break;
 		}
+		this.updateButtonValues();
 	}
 };
 
@@ -218,9 +220,14 @@ gameplayState.prototype.setupUI = function(){
 	animation_timer.loop(10000, this.animateAxx, this);
 	animation_timer.start();
 
-	this.wallButton.text.text = "Wall: " + this.object_caps[0];
-	this.switchButton.text.text = "Switch: " + this.object_caps[1];
-	this.trapButton.text.text = "Trap: " + this.object_caps[2];
+	this.updateButtonValues();
+};
+
+
+gameplayState.prototype.updateButtonValues = function(){
+	this.wallButton.text.text = "Wall: " + (this.object_caps[0] - this.counts[0]);
+	this.switchButton.text.text = "Switch: " + (this.object_caps[1] - this.counts[1]);
+	this.trapButton.text.text = "Trap: " + (this.object_caps[2] - this.counts[2]);
 };
 
 
@@ -351,6 +358,7 @@ gameplayState.prototype.changeSwitch = function(arrow) {
 			this.prev_y = 0;
 		}
 		arrow.kill();
+		this.updateButtonValues();
 	} else {
 		arrow.angle += 90;
 		if (arrow.pointing === 3) {
@@ -383,12 +391,13 @@ gameplayState.prototype.trapped = function(badger, trap) {
 
 gameplayState.prototype.delete = function(object) {
 	if (this.selection === "delete") {
-		this.counts[this.index]--;
+		this.counts[object.index]--;
 		if (object.x === this.prev_x && object.y === this.prev_y) {
 			this.prev_x = 0;
 			this.prev_y = 0;
 		}
 		object.kill();
+		this.updateButtonValues();
 	}
 };
 
@@ -479,6 +488,7 @@ gameplayState.prototype.restart = function() {
 	this.score = 0;
 	this.scoreText.text = "Score: "+this.score+"/"+this.badger_threshold;
 	this.selection = "";
+	this.updateButtonValues();
 };
 
 gameplayState.prototype.reset = function() {
