@@ -128,10 +128,10 @@ gameplayState.prototype.update = function(){
 		this.congratsBox();
 	}
 
-	if (cursor.down.isDown && this.started) {
+	/*if (cursor.down.isDown && this.started) {
 		this.started = false;
 		this.congratsBox();
-	}
+	}*/
 
 	// Collisions
 	game.physics.arcade.collide(this.people, this.walls, this.turn, null, this);
