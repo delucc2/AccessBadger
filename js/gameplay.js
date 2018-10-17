@@ -19,6 +19,7 @@ let gameplayState = function(){
 	this.buildPhase = true;
 	this.started = false;
 	this.level = 1;
+	this.animations = ["axx ear animation", "axx drink animation", "axx blink animation"];
 };
 
 gameplayState.prototype.create = function(){
@@ -234,8 +235,14 @@ gameplayState.prototype.setupUI = function(){
 	this.uiGroup.add(this.pauseButton);
 	this.uiGroup.add(this.deleteButton);
 	this.uiGroup.add(this.startButton);
-	
-	this.axx = game.add.sprite(10, 740, "axx icon");
+
+	this.axx = game.add.sprite(10, 740, "axx drink animation");
+	this.axx.animations.add("sip", [0,1,2,3,4,5,6,7,8,9,10,11,11,11,11,11,10,9,8,7,6,5,4,3,2,1,0], 10, false);
+	this.axx.animations.add("blink", [0,1,2,3,2,1,0], 15, false);
+	this.axx.animations.add("ears", [0,1,2,3,4,3,2,1,0], 10, false);
+	let animation_timer = game.time.create(false);
+	animation_timer.loop(10000, this.animateAxx, this);
+	animation_timer.start();
 
 	this.wallButton.text.text = "Wall: " + this.object_caps[0];
 	this.switchButton.text.text = "Switch: " + this.object_caps[1];
@@ -351,9 +358,6 @@ gameplayState.prototype.switchTurn = function(badger, arrow) {
 			badger.body.velocity.y = 75;
 			badger.angle = 180;
 		}
-	} else {
-		console.log("x", badger.body.velocity.x);
-		console.log("y", badger.body.velocity.y);
 	}
 };
 
@@ -383,8 +387,12 @@ gameplayState.prototype.isCenter = function(object1, object2) {
 // Turns the switch
 gameplayState.prototype.changeSwitch = function(arrow) {
 	if (this.selection === "delete") {
-		arrow.kill();
 		this.counts[1]--;
+		if (arrow.x - 37.5 === this.prev_x && arrow.y - 37.5 === this.prev_y) {
+			this.prev_x = 0;
+			this.prev_y = 0;
+		}
+		arrow.kill();
 	} else {
 		arrow.angle += 90;
 		if (arrow.pointing === 3) {
@@ -417,6 +425,10 @@ gameplayState.prototype.trapped = function(badger, trap) {
 gameplayState.prototype.delete = function(object) {
 	if (this.selection === "delete") {
 		this.counts[this.index]--;
+		if (object.x === this.prev_x && object.y === this.prev_y) {
+			this.prev_x = 0;
+			this.prev_y = 0;
+		}
 		object.kill();
 	}
 };
@@ -481,7 +493,6 @@ gameplayState.prototype.exit = function(badger, exit) {
 	} else {
 		this.wrong.play();
 	}
-	console.log(this.score);
 	badger.kill();
 }
 
@@ -498,6 +509,7 @@ gameplayState.prototype.restart = function() {
 	if (this.spawnLoop != null) { this.spawnLoop.stop(); }
 	this.loadLevel(this.level);
 	this.loadConversation(this.level);
+	this.startButton.text.text = "Start";
 	this.counts = [0, 0, 0];
 	this.buildPhase = true;
 	this.started = false;
@@ -687,3 +699,15 @@ gameplayState.prototype.changeDisabled = function(obj){
 
 	obj.button.inputEnabled = !obj.button.inputEnabled;
 };
+
+gameplayState.prototype.animateAxx = function() {
+	let animation = this.animations[game.rnd.integerInRange(0,2)];
+	this.axx.loadTexture(animation);
+	if (animation === "axx ear animation") {
+		this.axx.play("ears");
+	} else if (animation === "axx drink animation") {
+		this.axx.play("sip");
+	} else if (animation === "axx blink animation") {
+		this.axx.play("blink");
+	}
+}
