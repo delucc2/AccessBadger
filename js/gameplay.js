@@ -18,7 +18,7 @@ let gameplayState = function(){
 	this.entrance_y;
 	this.buildPhase = true;
 	this.started = false;
-	this.level = 3;
+	this.level = 1;
 };
 
 gameplayState.prototype.create = function(){
@@ -29,7 +29,7 @@ gameplayState.prototype.create = function(){
 	this.music.loop = true;
     this.music.play();*/
 
-	
+
 	this.blueBadgersLeft = 0;
 	this.redBadgersLeft = 0;
 	this.yellowBadgersLeft = 0;
@@ -108,7 +108,7 @@ gameplayState.prototype.update = function(){
 	this.graphics.drawRect(0, 0, 513, 1125);
 	this.graphics.endFill();
 
-	
+
 	// If the cursor is in a box, highlight as red
 	for (let i = 0; i < this.grid.length; i++) {
 		if (this.grid[i].contains(game.input.x, game.input.y)) {
@@ -234,7 +234,7 @@ gameplayState.prototype.setupUI = function(){
 	this.uiGroup.add(this.pauseButton);
 	this.uiGroup.add(this.deleteButton);
 	this.uiGroup.add(this.startButton);
-	
+
 
 
 	this.wallButton.text.text = "Wall: " + this.object_caps[0];
@@ -497,11 +497,22 @@ gameplayState.prototype.restart = function() {
 
 	if (this.spawnLoop != null) { this.spawnLoop.stop(); }
 	this.loadLevel(this.level);
+	this.loadConversation();
 	this.counts = [0, 0, 0];
 	this.buildPhase = true;
 	this.started = false;
 	this.score = 0;
-}
+};
+
+gameplayState.prototype.reset = function() {
+	this.people.callAll("kill");
+
+	if (this.spawnLoop != null) { this.spawnLoop.stop(); }
+	this.loadLevel(this.level);
+	this.buildPhase = true;
+	this.started = false;
+	this.score = 0;
+};
 
 gameplayState.prototype.generateLevelFromFile = function(text){
 	let textData = text.split('\n');
@@ -619,7 +630,7 @@ gameplayState.prototype.loadConversation = function(){
 	let data = game.cache.getText('level1Text');
 	let textList = data.split("\n");
 	this.runConversation(textList, 0);
-	
+
 };
 
 gameplayState.prototype.pauseGame = function(){
@@ -633,7 +644,7 @@ gameplayState.prototype.startGame = function(){
 		this.startButton.text.text = "Restart";
 		this.buildPhase = false;
 	} else {
-	    this.restart();
+	    this.reset();
 	    this.startButton.text.text = "Start";
 	}
 };
@@ -661,7 +672,7 @@ gameplayState.prototype.runConversation = function(textList, index){
 		}, 30, 120);
 	}
 
-	
+
 };
 
 gameplayState.prototype.destroyIntercom = function(){

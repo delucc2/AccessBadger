@@ -27,6 +27,7 @@ preloadState.prototype.preload = function(){
 	game.load.image("blue exit", "assets/images/blue_exit.png");
 	game.load.image("red exit", "assets/images/red_exit.png");
 	game.load.image("yellow exit", "assets/images/yellow_exit.png");
+	game.load.image("start", "assets/images/StartingPanel.png");
 	game.load.image("intercom_button_sheet", "assets/images/intercom_bubble.png");
 	game.load.image("talk_button_sheet", "assets/images/talk_bubble.png");
 	game.load.image("speech_bubble", "assets/images/speech_bubble.png");
@@ -40,7 +41,7 @@ preloadState.prototype.preload = function(){
 	game.load.text("level1", "levels/level1.txt");
 	game.load.text("level2", "levels/level2.txt");
 	game.load.text("level3", "levels/level3.txt");
-	
+
 	game.load.text("level1Text", "assets/writing/level_1.txt");
 	game.load.image("intercom_button_sheet", "assets/intercom_bubble.png");
 	game.load.image("talk_button_sheet", "assets/talk_bubble.png");
