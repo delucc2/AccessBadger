@@ -3,7 +3,12 @@ gameplayState.prototype.createButton = function(x, y, text, image = "", color, o
 	let buttonGroup = game.add.group();
 	let button = game.add.button(x, y, color+"_button_sheet", onClick, this, 2, 1, 0);
 	let uiText = game.add.text(x, y, text, {fontSize:"36px", fill:"#000", wordWrap:true});
-	
+	if (color === "talk"){
+		button.width = text.length * 28;
+		if(button.width > 2000){
+			button.width = 2000;
+		}
+	}
 	uiText.setTextBounds(textAlignmentX, textAlignmentY, button.width * 2);
 	uiText.padding.set(10, 16);
 	uiText.wordWrapWidth = button.width*0.9;
