@@ -26,10 +26,9 @@ gameplayState.prototype.create = function(){
   game.physics.startSystem(Phaser.Physics.ARCADE);
 
 	//audio
-	/*this.music = game.add.audio('music_1');
+	this.music = game.add.audio('music_1');
 	this.music.loop = true;
-    this.music.play();*/
-
+    this.music.play();
 
 	this.blueBadgersLeft = 0;
 	this.redBadgersLeft = 0;
@@ -83,12 +82,6 @@ gameplayState.prototype.create = function(){
 		}
 	}
 
-	// this.object_caps = [5,5,5];
-	// this.badger_nums = [2, 2, 2, 2];
-	// this.speechBubble = this.makeQuip(20, 500, "Hi, I'm an Access Badger");
-	// this.isSpeechBubbleActive = true;
-	// this.speechBubbleStartTime = game.time.time;
-
 	game.input.activePointer.leftButton.onDown.add(this.buildObject, this);
 
 	this.correct = game.add.audio("correct");
@@ -109,7 +102,6 @@ gameplayState.prototype.update = function(){
 	this.graphics.drawRect(0, 0, 513, 1125);
 	this.graphics.endFill();
 
-
 	// If the cursor is in a box, highlight as red
 	for (let i = 0; i < this.grid.length; i++) {
 		if (this.grid[i].contains(game.input.x, game.input.y)) {
@@ -127,9 +119,8 @@ gameplayState.prototype.update = function(){
 		this.cursor_x = -1;
 		this.cursor_y = -1;
 	}
-	//this.updateSpeechBubble();
 
-	if (this.people.countLiving() === 0 && this.started) {
+	if (this.people.countLiving() === 0 && this.started && this.score >= 7) {
 		this.level++;
 		this.restart();
 	}
@@ -284,7 +275,6 @@ gameplayState.prototype.turn = function(badger, wall) {
 
 // Checks if badger can pass through gate
 gameplayState.prototype.access = function(badger, gate) {
-	console.log(this.notSide(badger, gate));
   if ((gate.type.includes(badger.type) || badger.type === 'honeybadger') && this.notSide(badger, gate)){
 		if (badger.passed === false) {
 			switch (badger.type) {
@@ -403,6 +393,7 @@ gameplayState.prototype.trapped = function(badger, trap) {
 	// If badger is not a honeybadger, lose a point
 	if (badger.type !== "honeybadger") {
 		this.score -= 1;
+		this.scoreText.text = "Score: "+this.score+"/"+this.badger_threshold;
 	}
 	this.trap.play();
 	badger.kill();
@@ -431,6 +422,7 @@ gameplayState.prototype.spawnBadger = function(args) {
 	}
 	if (is_valid) {
 		this.spawnLoop.stop();
+		return;
 	}
 	while (!is_valid) {
 		badger_index = game.rnd.integerInRange(0, 3);
@@ -475,6 +467,7 @@ gameplayState.prototype.exit = function(badger, exit) {
 		this.scoreText.text = "Score: "+this.score+"/"+this.badger_threshold;
 	} else if (badger.type === "honeybadger") {
 		this.score -= 1;
+		this.scoreText.text = "Score: "+this.score+"/"+this.badger_threshold;
 		this.wrong.play();
 	} else {
 		this.wrong.play();
@@ -500,6 +493,7 @@ gameplayState.prototype.restart = function() {
 	this.buildPhase = true;
 	this.started = false;
 	this.score = 0;
+	this.scoreText.text = "Score: "+this.score+"/"+this.badger_threshold;
 	this.selection = "";
 };
 
@@ -511,6 +505,7 @@ gameplayState.prototype.reset = function() {
 	this.buildPhase = true;
 	this.started = false;
 	this.score = 0;
+	this.scoreText.text = "Score: "+this.score+"/"+this.badger_threshold;
 };
 
 gameplayState.prototype.generateLevelFromFile = function(text){
@@ -629,7 +624,6 @@ gameplayState.prototype.loadConversation = function(levelNum){
 	let data = game.cache.getText('level'+levelNum+'Text');
 	let textList = data.split("\n");
 	this.runConversation(textList, 0);
-
 };
 
 gameplayState.prototype.pauseGame = function(){
