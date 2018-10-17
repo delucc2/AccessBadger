@@ -214,7 +214,7 @@ gameplayState.prototype.setupUI = function(){
 	this.axx = game.add.sprite(10, 740, "axx drink animation");
 	this.axx.animations.add("sip", [0,1,2,3,4,5,6,7,8,9,10,11,11,11,11,11,10,9,8,7,6,5,4,3,2,1,0], 10, false);
 	this.axx.animations.add("blink", [0,1,2,3,2,1,0], 15, false);
-	this.axx.animations.add("ears", [0,1,2,3,4,3,2,1,0], 10, false);
+	this.axx.animations.add("ears", [0,1,2,3,4,3,2,1,0,1,2,3,4,3,2,1,0], 15, false);
 	let animation_timer = game.time.create(false);
 	animation_timer.loop(10000, this.animateAxx, this);
 	animation_timer.start();
@@ -446,7 +446,7 @@ gameplayState.prototype.loadLevel = function(x){
 gameplayState.prototype.exit = function(badger, exit) {
 	if (badger.type === exit.type && badger.passed) {
 		this.correct_exit.play();
-		this.score += 1;
+		this.score++;
 		this.scoreText.text = "Score: "+this.score+"/"+this.badger_threshold;
 	} else if (badger.type === "honeybadger") {
 		this.score -= 1;
