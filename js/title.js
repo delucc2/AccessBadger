@@ -9,7 +9,7 @@ titleState.prototype.preload = function(){
 titleState.prototype.create = function(){
 	game.add.sprite(0, 0, "titleScreen");
 	
-	this.createButton(800, 450, "Start", "yellow", function(){
+	this.createButton(905, 300, "Start", "title", function(){
 		game.state.start("Gameplay");
 	}, 220, 40);
 

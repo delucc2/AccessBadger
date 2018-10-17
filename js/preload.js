@@ -52,6 +52,7 @@ preloadState.prototype.preload = function(){
 	game.load.text("level3Text", "assets/writing/level_3.txt");
 
 	game.load.image("titleScreen", "assets/images/TitleScreen.png");
+	game.load.image("title_button_sheet", "assets/images/AccessBadgeButton.png")
 };
 
 preloadState.prototype.create = function(){
