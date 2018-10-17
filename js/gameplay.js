@@ -387,8 +387,12 @@ gameplayState.prototype.isCenter = function(object1, object2) {
 // Turns the switch
 gameplayState.prototype.changeSwitch = function(arrow) {
 	if (this.selection === "delete") {
-		arrow.kill();
 		this.counts[1]--;
+		if (arrow.x - 37.5 === this.prev_x && arrow.y - 37.5 === this.prev_y) {
+			this.prev_x = 0;
+			this.prev_y = 0;
+		}
+		arrow.kill();
 	} else {
 		arrow.angle += 90;
 		if (arrow.pointing === 3) {
@@ -421,6 +425,10 @@ gameplayState.prototype.trapped = function(badger, trap) {
 gameplayState.prototype.delete = function(object) {
 	if (this.selection === "delete") {
 		this.counts[this.index]--;
+		if (object.x === this.prev_x && object.y === this.prev_y) {
+			this.prev_x = 0;
+			this.prev_y = 0;
+		}
 		object.kill();
 	}
 };
@@ -485,7 +493,6 @@ gameplayState.prototype.exit = function(badger, exit) {
 	} else {
 		this.wrong.play();
 	}
-	console.log(this.score);
 	badger.kill();
 }
 
