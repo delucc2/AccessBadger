@@ -149,10 +149,10 @@ gameplayState.prototype.buildObject = function() {
 				let wall = this.walls.create(this.cursor_x, this.cursor_y, "wall");
 				wall.body.immovable = true;
 				wall.inputEnabled = true;
+				wall.index = 0;
 				wall.events.onInputOver.add(this.disallowPlacement, this);
 				wall.events.onInputOut.add(this.allowPlacement, this);
 				wall.events.onInputDown.add(this.delete, this);
-				this.index = 0;
 				break;
 			case "switch":
 				this.counts[1]++;
@@ -165,6 +165,7 @@ gameplayState.prototype.buildObject = function() {
 				arrow.pointing = 0;
 				arrow.body.immovable = true;
 				arrow.inputEnabled = true;
+				arrow.index = 1;
 				arrow.events.onInputDown.add(this.changeSwitch, this);
 				arrow.events.onInputOver.add(this.disallowPlacement, this);
 				arrow.events.onInputOut.add(this.allowPlacement, this);
@@ -181,10 +182,10 @@ gameplayState.prototype.buildObject = function() {
 				let trap = this.traps.create(this.cursor_x, this.cursor_y, "trap");
 				trap.body.immovable = true;
 				trap.inputEnabled = true;
+				trap.index = 2;
 				trap.events.onInputOver.add(this.disallowPlacement, this);
 				trap.events.onInputOut.add(this.allowPlacement, this);
 				trap.events.onInputDown.add(this.delete, this);
-				this.index = 2;
 				break;
 		}
 		this.updateButtonValues();
@@ -392,7 +393,7 @@ gameplayState.prototype.trapped = function(badger, trap) {
 
 gameplayState.prototype.delete = function(object) {
 	if (this.selection === "delete") {
-		this.counts[this.index]--;
+		this.counts[object.index]--;
 		if (object.x === this.prev_x && object.y === this.prev_y) {
 			this.prev_x = 0;
 			this.prev_y = 0;
