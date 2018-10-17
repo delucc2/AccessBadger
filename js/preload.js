@@ -42,9 +42,9 @@ preloadState.prototype.preload = function(){
 	game.load.text("level3", "levels/level3.txt");
 	
 	game.load.image("axx icon", "assets/images/AxxIcon.png");
-	game.load.spritesheet("axx ear animation", "assets/images/AxxEarAnimation.png", 500, 300);
-	game.load.spritesheet("axx drink animation", "assets/images/AxxDrinkAnimation.png", 500, 300);
-	game.load.spritesheet("axx ear animation", "assets/images/AxxBlinkAnimation.png", 500, 300);
+	// game.load.spritesheet("axx ear animation", "assets/images/AxxEarAnimation.png", 500, 300);
+	// game.load.spritesheet("axx drink animation", "assets/images/AxxDrinkAnimation.png", 500, 300);
+	// game.load.spritesheet("axx ear animation", "assets/images/AxxBlinkAnimation.png", 500, 300);
 
 	game.load.text("level1Text", "assets/writing/level_1.txt");
 
