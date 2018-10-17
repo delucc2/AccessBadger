@@ -33,6 +33,7 @@ preloadState.prototype.preload = function(){
 	game.load.image("speech_bubble", "assets/images/speech_bubble.png");
 
 	game.load.audio("music_1", "assets/sounds/chill synthwave stuff.ogg");
+	game.load.audio("title music", "assets/sounds/menu theme.ogg");
 	game.load.audio("correct", "assets/sounds/correct SFX.ogg");
 	game.load.audio("correct exit", "assets/sounds/good exit SFX.ogg");
 	game.load.audio("trap sfx", "assets/sounds/trap SFX.ogg");

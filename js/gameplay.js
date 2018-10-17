@@ -28,7 +28,7 @@ gameplayState.prototype.create = function(){
 	//audio
 	this.music = game.add.audio('music_1');
 	this.music.loop = true;
-    this.music.play();
+  this.music.play();
 
 	this.blueBadgersLeft = 0;
 	this.redBadgersLeft = 0;
@@ -201,8 +201,6 @@ gameplayState.prototype.setupUI = function(){
 	this.pauseButton = this.createButton(0, 480, "Pause", "", "orange", this.pauseGame);
 	this.deleteButton = this.createButton(170, 480, "Delete", "", "orange", this.setDelete);
 	this.startButton = this.createButton(340, 480, "Start", "", "orange", this.startGame);
-	
-	
 
 	this.uiGroup = game.add.group();
 	this.uiGroup.add(this.switchButton);
@@ -426,6 +424,7 @@ gameplayState.prototype.spawnBadger = function(args) {
 		badger.animations.play("walk");
 		badger.anchor.setTo(0.5, 0.5);
 		badger.angle += 180;
+		badger.scored = false;
 	}
 }
 
@@ -445,16 +444,17 @@ gameplayState.prototype.loadLevel = function(x){
 };
 
 gameplayState.prototype.exit = function(badger, exit) {
-	if (badger.type === exit.type && badger.passed) {
+	if (badger.type === exit.type && badger.passed && !badger.scored) {
+		badger.scored = true;
 		this.correct_exit.play();
 		this.score++;
 		this.scoreText.text = "Score: "+this.score+"/"+this.badger_threshold;
 	} else if (badger.type === "honeybadger") {
 		this.score -= 1;
 		this.scoreText.text = "Score: "+this.score+"/"+this.badger_threshold;
-		this.wrong.play();
+		if (badger.type !== exit.type) { this.wrong.play(); }
 	} else {
-		this.wrong.play();
+		if (badger.type !== exit.type) { this.wrong.play(); }
 	}
 	badger.kill();
 }
