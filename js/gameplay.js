@@ -526,6 +526,7 @@ gameplayState.prototype.restart = function() {
 		this.updateButtonValues();
 	} else {
 		game.state.start("Title");
+		this.level = 1;
 	}
 };
 
