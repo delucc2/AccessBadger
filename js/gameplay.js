@@ -13,8 +13,7 @@ let gameplayState = function(){
 	this.prev_x = -1;
 	this.prev_y = -1;
 	this.isSpeechBubbleActive = false;
-	// this.speechBubbleActiveTime = 5000;
-	// this.speechBubbleStartTime = 0;
+	this.badger_threshold = 7;
 	this.entrance_x;
 	this.entrance_y;
 	this.started = false;
@@ -213,7 +212,7 @@ gameplayState.prototype.setupUI = function(){
 	this.graphics.beginFill(0xA5CBD2);
 	this.graphics.drawRect(0, 0, 513, 1125);
 	this.graphics.endFill();
-	
+	this.scoreText = game.add.text(10, 10, "Score: 0/" + this.badger_threshold, {fontSize: '32px', fill: '#000'});
 	this.switchButton = this.createButton(0, 200, "Switch", "switch", "blue", this.setSelectionSwitch);
 	this.wallButton = this.createButton(0, 60, "Wall", "wall", "red", this.setSelectionWall);
 	this.trapButton = this.createButton(0, 340, "Trap", "trap_ui", "yellow", this.setSelectionTrap);
@@ -426,6 +425,7 @@ gameplayState.prototype.loadLevel = function(){
 gameplayState.prototype.exit = function(badger, exit) {
 	if (badger.type === exit.type && badger.passed) {
 		this.score += 1;
+		this.scoreText.text = "Score: "+this.score+"/"+this.badger_threshold;
 	}
 	console.log(this.score);
 	badger.kill();
