@@ -509,6 +509,7 @@ gameplayState.prototype.restart = function() {
 	if (this.spawnLoop != null) { this.spawnLoop.stop(); }
 	this.loadLevel(this.level);
 	this.loadConversation(this.level);
+	this.startButton.text.text = "Start";
 	this.counts = [0, 0, 0];
 	this.buildPhase = true;
 	this.started = false;
