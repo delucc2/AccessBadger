@@ -7,10 +7,11 @@ titleState.prototype.preload = function(){
 };
 
 titleState.prototype.create = function(){
-	game.add.text(500, 200, "Access Badge(r)", {fontSize:"36px", fill:"#FFF"});
-	this.createButton(500, 300, "Start", "blue", function(){
+	game.add.sprite(0, 0, "titleScreen");
+	
+	this.createButton(915, 275, "Start", "title", function(){
 		game.state.start("Gameplay");
-	}, 200);
+	}, 100, 360);
 
 };
 
@@ -26,5 +27,6 @@ titleState.prototype.createButton = function(x, y, text, color, onClick, textAli
 	
 	uiText.setTextBounds(textAlignmentX, textAlignmentY, button.width * 2);
 	uiText.padding.set(10, 16);
+	uiText.angle = -5;
 	return buttonGroup;
 };

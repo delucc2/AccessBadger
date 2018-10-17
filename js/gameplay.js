@@ -201,9 +201,7 @@ gameplayState.prototype.setupUI = function(){
 	this.pauseButton = this.createButton(0, 480, "Pause", "", "orange", this.pauseGame);
 	this.deleteButton = this.createButton(170, 480, "Delete", "", "orange", this.setDelete);
 	this.startButton = this.createButton(340, 480, "Start", "", "orange", this.startGame);
-	this.blueBadgersLeftText = game.add.text(10, 610, "Blue Badgers Left: " + this.blueBadgersLeft, {fontSize: '32px', fill: '#000'});
-	this.redBadgersLeftText = game.add.text(10, 650, "Red Badgers Left: " + this.redBadgersLeft, {fontSize: '32px', fill: '#000'});
-	this.yellowBadgersLeftText = game.add.text(10, 690, "Yellow Badgers Left: " + this.yellowBadgersLeft, {fontSize: '32px', fill: '#000'});
+
 
 	this.uiGroup = game.add.group();
 	this.uiGroup.add(this.switchButton);
@@ -226,21 +224,6 @@ gameplayState.prototype.setupUI = function(){
 	this.trapButton.text.text = "Trap: " + this.object_caps[2];
 };
 
-
-gameplayState.prototype.decreaseBlueBadgersLeft = function(){
-	this.blueBadgersLeft--;
-	this.blueBadgersLeftText.text = "Blue Badgers Left: " + this.blueBadgersLeft;
-};
-
-gameplayState.prototype.decreaseRedBadgersLeft = function(){
-	this.redBadgersLeft--;
-	this.redBadgersLeftText.text = "Red Badgers Left: " + this.redBadgersLeft;
-};
-
-gameplayState.prototype.decreaseBlueBadgersLeft = function(){
-	this.yellowBadgersLeft--;
-	this.yellowBadgersLeftText.text = "Yellow Badgers Left: " + this.yellowBadgersLeft;
-};
 
 gameplayState.prototype.setSelectionWall = function(){
 	this.selection = "wall";
