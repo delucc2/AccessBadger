@@ -201,7 +201,8 @@ gameplayState.prototype.setupUI = function(){
 	this.pauseButton = this.createButton(0, 480, "Pause", "", "orange", this.pauseGame);
 	this.deleteButton = this.createButton(170, 480, "Delete", "", "orange", this.setDelete);
 	this.startButton = this.createButton(340, 480, "Start", "", "orange", this.startGame);
-
+	
+	
 
 	this.uiGroup = game.add.group();
 	this.uiGroup.add(this.switchButton);
