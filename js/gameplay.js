@@ -19,7 +19,7 @@ let gameplayState = function(){
 	this.entrance_y;
 	this.buildPhase = true;
 	this.started = false;
-	this.level = 1;
+	this.level = 3;
 };
 
 gameplayState.prototype.create = function(){
@@ -286,6 +286,7 @@ gameplayState.prototype.destroyIntercom = function(){
 };
 // Checks if badger can pass through gate
 gameplayState.prototype.access = function(badger, gate) {
+	console.log(this.notSide(badger, gate));
   if ((gate.type.includes(badger.type) || badger.type === 'honeybadger') && this.notSide(badger, gate)){
 		if (badger.passed === false) {
 			switch (badger.type) {
@@ -364,9 +365,11 @@ gameplayState.prototype.updateSpeechBubble = function(){
 gameplayState.prototype.isCenter = function(object1, object2) {
 	let dif_x = Phaser.Math.difference(object1.centerX, object2.centerX);
 	let dif_y = Phaser.Math.difference(object1.centerY, object2.centerY);
-	if (dif_x <= 2 && dif_y <= 2 && object1.type !== "honeybadger") {
-		object1.body.velocity.x = 0;
-		object1.body.velocity.y = 0;
+	if (dif_x <= 2 && dif_y <= 2) {
+		if (object1.type !== "honeybadger") {
+			object1.body.velocity.x = 0;
+			object1.body.velocity.y = 0;
+		}
 		return true;
 	}
 	return false;

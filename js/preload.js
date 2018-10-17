@@ -39,6 +39,7 @@ preloadState.prototype.preload = function(){
 
 	game.load.text("level1", "levels/level1.txt");
 	game.load.text("level2", "levels/level2.txt");
+	game.load.text("level3", "levels/level3.txt");
 };
 
 preloadState.prototype.create = function(){
