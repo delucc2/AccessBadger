@@ -129,20 +129,6 @@ gameplayState.prototype.update = function(){
 	}
 	//this.updateSpeechBubble();
 
-	// For debug, controls for placing badgers and switches
-	if (this.cursors.right.isDown && this.buildPhase) {
-		this.startSpawning();
-		this.buildPhase = false;
-	}
-
-	if (this.cursors.left.isDown) {
-		this.selection = "delete";
-	}
-
-	if (this.cursors.down.isDown) {
-		this.restart();
-	}
-
 	if (this.people.countLiving() === 0 && this.started) {
 		this.level++;
 		this.restart();
@@ -514,6 +500,7 @@ gameplayState.prototype.restart = function() {
 	this.buildPhase = true;
 	this.started = false;
 	this.score = 0;
+	this.selection = "";
 };
 
 gameplayState.prototype.reset = function() {
@@ -549,7 +536,7 @@ gameplayState.prototype.generateLevelFromFile = function(text){
 					gate.type = ["blue", "red"];
 					gate.direction = "horizontal";
 					gate.inputEnabled = true;
-					gate.events.onInputDown.add(this.changeSwitch, this);
+					gate.events.onInputOut.add(this.allowPlacement, this);
 					gate.events.onInputOver.add(this.disallowPlacement, this);
 					break;
 				case('3'):
@@ -558,7 +545,7 @@ gameplayState.prototype.generateLevelFromFile = function(text){
 					gate1.type = ["blue", "yellow"];
 					gate1.direction = "horizontal";
 					gate1.inputEnabled = true;
-					gate1.events.onInputDown.add(this.changeSwitch, this);
+					gate1.events.onInputOut.add(this.allowPlacement, this);
 					gate1.events.onInputOver.add(this.disallowPlacement, this);
 					break;
 				case('4'):
@@ -567,7 +554,7 @@ gameplayState.prototype.generateLevelFromFile = function(text){
 					gate2.type = ["red", "yellow"];
 					gate2.direction = "horizontal";
 					gate2.inputEnabled = true;
-					gate2.events.onInputDown.add(this.changeSwitch, this);
+					gate2.events.onInputOut.add(this.allowPlacement, this);
 					gate2.events.onInputOver.add(this.disallowPlacement, this);
 					break;
 				case('5'):
@@ -601,7 +588,7 @@ gameplayState.prototype.generateLevelFromFile = function(text){
 					gate3.type = ["red", "yellow"];
 					gate3.direction = "vertical";
 					gate3.inputEnabled = true;
-					gate3.events.onInputDown.add(this.changeSwitch, this);
+					gate3.events.onInputOut.add(this.allowPlacement, this);
 					gate3.events.onInputOver.add(this.disallowPlacement, this);
 					gate3.anchor.setTo(0.5, 0.5);
 					gate3.angle += 90;
@@ -612,7 +599,7 @@ gameplayState.prototype.generateLevelFromFile = function(text){
 					gate4.type = ["red", "blue"];
 					gate4.direction = "vertical";
 					gate4.inputEnabled = true;
-					gate4.events.onInputDown.add(this.changeSwitch, this);
+					gate4.events.onInputOut.add(this.allowPlacement, this);
 					gate4.events.onInputOver.add(this.disallowPlacement, this);
 					gate4.anchor.setTo(0.5, 0.5);
 					gate4.angle += 90;
@@ -623,7 +610,7 @@ gameplayState.prototype.generateLevelFromFile = function(text){
 					gate5.type = ["blue", "yellow"];
 					gate5.direction = "vertical";
 					gate5.inputEnabled = true;
-					gate5.events.onInputDown.add(this.changeSwitch, this);
+					gate5.events.onInputOut.add(this.allowPlacement, this);
 					gate5.events.onInputOver.add(this.disallowPlacement, this);
 					gate5.anchor.setTo(0.5, 0.5);
 					gate5.angle += 90;
