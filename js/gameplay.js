@@ -518,7 +518,7 @@ gameplayState.prototype.loadConversation = function(){
 	let data = game.cache.getText('level1Text');
 	let textList = data.split("\n");
 	this.runConversation(textList, 0);
-	//this.uiGroup.forEach(changeDisabled, this);
+	
 };
 
 gameplayState.prototype.pauseGame = function(){
@@ -527,8 +527,15 @@ gameplayState.prototype.pauseGame = function(){
 
 
 gameplayState.prototype.startGame = function(){
-	this.startSpawning();
-	this.started = true;
+	if(!this.started){
+		this.startSpawning();
+		this.startButton.text.text = "Restart";
+		this.started = true;
+	}
+	else{
+		this.restart();
+		this.startButton.text.text = "Start";
+	}
 };
 
 gameplayState.prototype.setDelete = function(){
