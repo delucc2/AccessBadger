@@ -170,7 +170,7 @@ gameplayState.prototype.buildObject = function() {
 				arrow.events.onInputOver.add(this.disallowPlacement, this);
 				arrow.events.onInputOut.add(this.allowPlacement, this);
 				arrow.anchor.setTo(0.5, 0.5);
-				this.index = 1;
+				
 				break;
 			case "trap":
 				this.counts[2]++;
