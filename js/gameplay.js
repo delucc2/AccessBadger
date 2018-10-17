@@ -64,6 +64,11 @@ gameplayState.prototype.create = function(){
 	this.exits.enableBody = true;
 
 	this.loadLevel();
+
+	this.blueBadgersLeft = this.badger_nums[0];
+	this.redBadgersLeft = this.badger_nums[1];
+	this.yellowBadgersLeft = this.badger_nums[2];
+
 	this.setupUI();
 	this.loadConversation();
 
@@ -219,9 +224,9 @@ gameplayState.prototype.setupUI = function(){
 	this.pauseButton = this.createButton(0, 480, "Pause", "", "orange", this.pauseGame);
 	this.deleteButton = this.createButton(170, 480, "Delete", "", "orange", this.setDelete);
 	this.startButton = this.createButton(340, 480, "Start", "", "orange", this.startGame);
-	this.blueBadgersLeftText = game.add.text(10, 610, "Blue Badgers Left: 0", {fontSize: '32px', fill: '#000'});
-	this.redBadgersLeftText = game.add.text(10, 650, "Red Badgers Left: 0", {fontSize: '32px', fill: '#000'});
-	this.yellowBadgersLeftText = game.add.text(10, 690, "Yellow Badgers Left: 0", {fontSize: '32px', fill: '#000'});
+	this.blueBadgersLeftText = game.add.text(10, 610, "Blue Badgers Left: " + this.blueBadgersLeft, {fontSize: '32px', fill: '#000'});
+	this.redBadgersLeftText = game.add.text(10, 650, "Red Badgers Left: " + this.redBadgersLeft, {fontSize: '32px', fill: '#000'});
+	this.yellowBadgersLeftText = game.add.text(10, 690, "Yellow Badgers Left: " + this.yellowBadgersLeft, {fontSize: '32px', fill: '#000'});
 
 	this.uiGroup = game.add.group();
 	this.uiGroup.add(this.switchButton);
