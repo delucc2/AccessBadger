@@ -7,10 +7,11 @@ titleState.prototype.preload = function(){
 };
 
 titleState.prototype.create = function(){
-	game.add.text(500, 200, "Access Badge(r)", {fontSize:"36px", fill:"#FFF"});
-	this.createButton(500, 300, "Start", "blue", function(){
+	game.add.sprite(0, 0, "titleScreen");
+	
+	this.createButton(800, 450, "Start", "yellow", function(){
 		game.state.start("Gameplay");
-	}, 200);
+	}, 220, 40);
 
 };
 

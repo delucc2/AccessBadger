@@ -51,10 +51,7 @@ preloadState.prototype.preload = function(){
 	game.load.text("level2Text", "assets/writing/level_2.txt");
 	game.load.text("level3Text", "assets/writing/level_3.txt");
 
-	game.load.image("intercom_button_sheet", "assets/intercom_bubble.png");
-	game.load.image("talk_button_sheet", "assets/talk_bubble.png");
-	game.load.image("speech_bubble", "assets/speech_bubble.png");
-	game.load.audio("music_1", "assets/chill synthwave stuff.ogg");
+	game.load.image("titleScreen", "assets/images/TitleScreen.png");
 };
 
 preloadState.prototype.create = function(){
